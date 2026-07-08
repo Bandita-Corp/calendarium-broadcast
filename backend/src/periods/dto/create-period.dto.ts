@@ -20,4 +20,8 @@ export class CreatePeriodDto {
   @IsOptional()
   @IsHexColor()
   color?: string;
+
+  @IsOptional()
+  @IsString()
+  presetId?: string;
 }

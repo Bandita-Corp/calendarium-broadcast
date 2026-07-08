@@ -23,6 +23,7 @@ model User {
   role           Role     @default(USER)
   refreshToken   String?
   periods        Period[]
+  presets        Preset[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -37,8 +38,22 @@ model Period {
   color     String   @default("#FFD700")
   createdBy User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   userId    String?
+  preset    Preset?  @relation(fields: [presetId], references: [id], onDelete: SetNull)
+  presetId  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("periods")
+}
+
+model Preset {
+  id        String   @id @default(uuid())
+  name      String
+  createdBy User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  periods   Period[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("presets")
 }

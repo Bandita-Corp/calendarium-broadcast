@@ -11,8 +11,10 @@ import { UpdatePeriodDto } from './dto/update-period.dto';
 export class PeriodsService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(presetId?: string) {
+    const where = presetId ? { presetId } : {};
     return this.prisma.period.findMany({
+      where,
       orderBy: { startDate: 'asc' },
       include: {
         createdBy: {
@@ -52,6 +54,7 @@ export class PeriodsService {
         endDate: end,
         color: dto.color,
         userId,
+        presetId: dto.presetId,
       },
       include: {
         createdBy: {
@@ -69,6 +72,7 @@ export class PeriodsService {
     if (dto.color) data.color = dto.color;
     if (dto.startDate) data.startDate = new Date(dto.startDate);
     if (dto.endDate) data.endDate = new Date(dto.endDate);
+    if (dto.presetId) data.presetId = dto.presetId;
 
     const updated = await this.prisma.period.update({
       where: { id },

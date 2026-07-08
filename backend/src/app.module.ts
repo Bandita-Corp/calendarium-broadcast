@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { PeriodsModule } from './periods/periods.module';
 import { PublicModule } from './public/public.module';
 import { AdminModule } from './admin/admin.module';
+import { PresetsModule } from './presets/presets.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AdminModule } from './admin/admin.module';
     PeriodsModule,
     PublicModule,
     AdminModule,
+    PresetsModule,
   ],
 })
 export class AppModule {}

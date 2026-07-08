@@ -13,5 +13,14 @@ export interface Period {
   startDate: string;
   endDate: string;
   userId: string;
+  presetId?: string;
+  createdAt: string;
+}
+
+export interface Preset {
+  id: string;
+  name: string;
+  userId: string;
+  periods?: Period[];
   createdAt: string;
 }

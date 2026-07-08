@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { PeriodsService } from './periods.service';
@@ -23,8 +24,8 @@ export class PeriodsController {
   constructor(private periodsService: PeriodsService) {}
 
   @Get()
-  findAll() {
-    return this.periodsService.findAll();
+  findAll(@Query('presetId') presetId?: string) {
+    return this.periodsService.findAll(presetId);
   }
 
   @Get(':id')
