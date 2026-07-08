@@ -1,81 +1,46 @@
 import {
   Component,
   Input,
+  Output,
+  EventEmitter,
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Period } from '../../models';
+import { Period } from '@/models';
 
 interface CalendarDay {
   date: Date;
   dayNumber: number;
   isToday: boolean;
-  isCurrentMonth: boolean;
+  isFirstDayOfMonth: boolean;
   periods: Period[];
-}
-
-interface CalendarMonth {
-  name: string;
-  year: number;
-  month: number;
-  weeks: CalendarDay[][];
 }
 
 @Component({
   selector: 'app-calendar-view',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="calendar-grid">
-      @for (cal of calendarMonths; track cal.month) {
-        <div class="cal-month">
-          <div class="cal-month-header">
-            <span class="cal-month-name">{{ cal.name }}</span>
-            <span class="cal-month-year">{{ cal.year }}</span>
-          </div>
-          <div class="cal-weekdays">
-            @for (d of weekdays; track d) {
-              <div class="cal-weekday">{{ d }}</div>
-            }
-          </div>
-          @for (week of cal.weeks; track $index) {
-            <div class="cal-week">
-              @for (day of week; track $index) {
-                <div
-                  class="cal-day"
-                  [class.today]="day.isToday"
-                  [class.other-month]="!day.isCurrentMonth"
-                  [class.has-period]="day.periods.length > 0"
-                >
-                  <span class="cal-day-num">{{ day.dayNumber }}</span>
-                  @if (day.periods.length > 0) {
-                    <div class="day-dots">
-                      @for (p of day.periods.slice(0,3); track p.id) {
-                        <span class="dot" [style.background-color]="p.color" [title]="p.name"></span>
-                      }
-                    </div>
-                  }
-                </div>
-              }
-            </div>
-          }
-        </div>
-      }
-    </div>
-  `,
+  templateUrl: './calendar-view.component.html',
+  styleUrls: ['./calendar-view.component.css']
 })
 export class CalendarViewComponent implements OnChanges {
   @Input() periods: Period[] = [];
   @Input() year: number = new Date().getFullYear();
+  
+  @Output() dateSelected = new EventEmitter<Date>();
+  @Output() dateRangeSelected = new EventEmitter<{start: Date, end: Date}>();
 
-  calendarMonths: CalendarMonth[] = [];
+  allWeeks: (CalendarDay | null)[][] = [];
   weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
   monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
   ];
+
+  selectionStart: Date | null = null;
+  hoveredDate: Date | null = null;
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['periods'] || changes['year']) {
@@ -85,66 +50,90 @@ export class CalendarViewComponent implements OnChanges {
 
   private buildCalendar() {
     const today = new Date();
-    this.calendarMonths = [];
+    today.setHours(0, 0, 0, 0);
 
-    for (let m = 0; m < 12; m++) {
-      const firstDay = new Date(this.year, m, 1);
-      const lastDay = new Date(this.year, m + 1, 0);
+    const firstDayOfYear = new Date(this.year, 0, 1);
+    const lastDayOfYear = new Date(this.year, 11, 31);
+    
+    let currentWeek: (CalendarDay | null)[] = new Array(7).fill(null);
+    this.allWeeks = [];
 
-      // Pad start
-      const startPad = firstDay.getDay();
-      const days: CalendarDay[] = [];
+    // Fill initial empty days
+    for (let i = 0; i < firstDayOfYear.getDay(); i++) {
+      currentWeek[i] = null;
+    }
 
-      for (let i = startPad; i > 0; i--) {
-        const d = new Date(this.year, m, 1 - i);
-        days.push(this.buildDay(d, false, today));
-      }
+    let currentDate = new Date(firstDayOfYear);
+    
+    while (currentDate <= lastDayOfYear) {
+      const dayOfWeek = currentDate.getDay();
+      
+      const dayToday = new Date();
+      dayToday.setHours(0, 0, 0, 0);
+      const isToday = currentDate.getTime() === dayToday.getTime();
+      const isFirstDayOfMonth = currentDate.getDate() === 1;
 
-      for (let d = 1; d <= lastDay.getDate(); d++) {
-        const date = new Date(this.year, m, d);
-        days.push(this.buildDay(date, true, today));
-      }
-
-      // Pad end to complete last week
-      const endPad = 6 - lastDay.getDay();
-      for (let i = 1; i <= endPad; i++) {
-        const d = new Date(this.year, m + 1, i);
-        days.push(this.buildDay(d, false, today));
-      }
-
-      // Split into weeks
-      const weeks: CalendarDay[][] = [];
-      for (let i = 0; i < days.length; i += 7) {
-        weeks.push(days.slice(i, i + 7));
-      }
-
-      this.calendarMonths.push({
-        name: this.monthNames[m],
-        year: this.year,
-        month: m,
-        weeks,
+      const currentMs = currentDate.getTime();
+      const periods = this.periods.filter((p) => {
+        const start = new Date(p.startDate).getTime();
+        const end = new Date(p.endDate).getTime();
+        return currentMs >= start && currentMs <= end;
       });
+
+      currentWeek[dayOfWeek] = {
+        date: new Date(currentDate),
+        dayNumber: currentDate.getDate(),
+        isToday,
+        isFirstDayOfMonth,
+        periods,
+      };
+
+      if (dayOfWeek === 6 || currentDate.getTime() === lastDayOfYear.getTime()) {
+        this.allWeeks.push(currentWeek);
+        currentWeek = new Array(7).fill(null);
+      }
+      
+      currentDate.setDate(currentDate.getDate() + 1);
     }
   }
 
-  private buildDay(date: Date, isCurrentMonth: boolean, today: Date): CalendarDay {
-    const isToday =
-      date.getFullYear() === today.getFullYear() &&
-      date.getMonth() === today.getMonth() &&
-      date.getDate() === today.getDate();
+  onDayClick(date: Date) {
+    if (!this.selectionStart) {
+      // Start a new selection
+      this.selectionStart = date;
+      this.dateSelected.emit(date);
+    } else {
+      // Complete the range selection
+      const start = this.selectionStart < date ? this.selectionStart : date;
+      const end = this.selectionStart > date ? this.selectionStart : date;
+      
+      this.dateRangeSelected.emit({ start, end });
+      
+      // Reset selection for next time
+      this.selectionStart = null;
+      this.hoveredDate = null;
+    }
+  }
 
-    const periods = this.periods.filter((p) => {
-      const start = new Date(p.startDate);
-      const end = new Date(p.endDate);
-      return date >= start && date <= end;
-    });
+  onDayHover(date: Date) {
+    if (this.selectionStart) {
+      this.hoveredDate = date;
+    }
+  }
 
-    return {
-      date,
-      dayNumber: date.getDate(),
-      isToday,
-      isCurrentMonth,
-      periods,
-    };
+  isSelected(date: Date): boolean {
+    if (!this.selectionStart) return false;
+    if (this.hoveredDate) return false; // Handled by isInRange when hovering
+    return date.getTime() === this.selectionStart.getTime();
+  }
+
+  isInRange(date: Date): boolean {
+    if (!this.selectionStart || !this.hoveredDate) return false;
+    const start = this.selectionStart < this.hoveredDate ? this.selectionStart : this.hoveredDate;
+    const end = this.selectionStart > this.hoveredDate ? this.selectionStart : this.hoveredDate;
+    
+    const time = date.getTime();
+    return time >= start.getTime() && time <= end.getTime();
   }
 }
+

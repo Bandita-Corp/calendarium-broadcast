@@ -1,0 +1,11 @@
+<div class="lang-switcher">
+  <button 
+    [class.active]="currentLang === 'en'" 
+    (click)="setLang('en')"
+  >EN</button>
+  <span class="divider">|</span>
+  <button 
+    [class.active]="currentLang === 'ru'" 
+    (click)="setLang('ru')"
+  >RU</button>
+</div>

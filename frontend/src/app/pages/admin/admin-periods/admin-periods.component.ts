@@ -1,119 +1,15 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { PeriodsService } from '../../../services/periods.service';
-import { Period } from '../../../models';
+import { PeriodsService } from '@/services/periods.service';
+import { Period } from '@/models';
 
 @Component({
   selector: 'app-admin-periods',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  template: `
-    <div class="page admin-page">
-      <div class="page-header">
-        <div>
-          <h1 class="page-title">Periods</h1>
-          <p class="page-subtitle">Manage named timeframes on the annual timeline</p>
-        </div>
-        <button class="btn-primary" (click)="openCreateForm()">+ New Period</button>
-      </div>
-
-      <!-- Create / Edit Form -->
-      @if (showForm) {
-        <div class="admin-form-card">
-          <h2 class="form-title">{{ editingId ? 'Edit Period' : 'Create Period' }}</h2>
-          <form [formGroup]="periodForm" (ngSubmit)="onSubmit()" class="period-form">
-            @if (formError) {
-              <div class="alert alert-error">{{ formError }}</div>
-            }
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Name</label>
-                <input type="text" class="form-input" formControlName="name" placeholder="e.g. Spring Bloom" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Color</label>
-                <div class="color-input-wrap">
-                  <input type="color" class="color-picker" formControlName="color" />
-                  <span class="color-value">{{ periodForm.value.color }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Start Date</label>
-                <input type="date" class="form-input" formControlName="startDate" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">End Date</label>
-                <input type="date" class="form-input" formControlName="endDate" />
-              </div>
-            </div>
-
-            <div class="form-actions">
-              <button type="button" class="btn-outline" (click)="cancelForm()">Cancel</button>
-              <button type="submit" class="btn-primary" [disabled]="periodForm.invalid || saving">
-                @if (saving) { Saving... } @else { {{ editingId ? 'Update' : 'Create' }} }
-              </button>
-            </div>
-          </form>
-        </div>
-      }
-
-      <!-- Periods Table -->
-      <div class="admin-table-card">
-        @if (loading) {
-          <div class="loading-state"><div class="spinner"></div></div>
-        } @else {
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Color</th>
-                <th>Name</th>
-                <th>Start</th>
-                <th>End</th>
-                <th>Duration</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (period of periods; track period.id) {
-                <tr [class.active-row]="isPeriodActive(period)">
-                  <td>
-                    <span class="color-dot" [style.background-color]="period.color"></span>
-                  </td>
-                  <td class="period-name-cell">{{ period.name }}</td>
-                  <td>{{ period.startDate | date: 'MMM d, y' }}</td>
-                  <td>{{ period.endDate | date: 'MMM d, y' }}</td>
-                  <td>{{ getDuration(period) }}d</td>
-                  <td>
-                    @if (isPeriodActive(period)) {
-                      <span class="status-badge active">Active</span>
-                    } @else if (isFuture(period)) {
-                      <span class="status-badge upcoming">Upcoming</span>
-                    } @else {
-                      <span class="status-badge past">Past</span>
-                    }
-                  </td>
-                  <td class="actions-cell">
-                    <button class="btn-icon edit" (click)="editPeriod(period)" title="Edit">✏️</button>
-                    <button class="btn-icon delete" (click)="deletePeriod(period.id)" title="Delete">🗑️</button>
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="7" class="empty-row">No periods yet. Create your first one!</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        }
-      </div>
-    </div>
-  `,
+  templateUrl: './admin-periods.component.html',
+  styleUrl: './admin-periods.component.css',
 })
 export class AdminPeriodsComponent implements OnInit {
   private periodsService = inject(PeriodsService);

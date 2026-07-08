@@ -1,0 +1,57 @@
+    <div class="page dashboard-page">
+      <div class="header">
+        <h1>{{ 'NAV.DASHBOARD' | translate }}</h1>
+        <p class="subtitle">{{ 'AUTH.WELCOME_BACK' | translate }}, {{ authService.currentUser?.name || authService.currentUser?.email }}!</p>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="sidebar">
+          <div class="card glass-panel presets-card">
+            <h3>Presets</h3>
+            <div class="presets-list">
+              @for (preset of presets; track preset.id) {
+                <label class="preset-toggle">
+                  <input type="checkbox" [checked]="isSelected(preset.id)" (change)="togglePreset(preset.id)">
+                  <span class="preset-name">{{ preset.name }}</span>
+                </label>
+              }
+              @if (presets.length === 0) {
+                <p class="empty-text">No presets found.</p>
+              }
+            </div>
+
+            <div class="add-preset-form" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" [(ngModel)]="newPresetName" [placeholder]="'ADMIN.NEW_PRESET_NAME' | translate" class="form-input" style="flex: 1;">
+                <button class="btn-outline" (click)="createPreset()" [disabled]="!newPresetName">{{ 'ADMIN.ADD' | translate }}</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card glass-panel live-card">
+            <h3>
+              <span class="live-pulse"></span>
+              Live Events
+            </h3>
+            <div class="live-list">
+              @for (period of livePeriods; track period.id) {
+                <div class="live-item">
+                  <span class="dot" [style.background-color]="period.color"></span>
+                  <span class="live-name">{{ period.name }}</span>
+                </div>
+              }
+              @if (livePeriods.length === 0) {
+                <p class="empty-text">No live events right now.</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="main-content">
+          <div class="card glass-panel calendar-card">
+            <h2>{{ 'BOARD.YEAR_AT_A_GLANCE' | translate }}</h2>
+            <app-calendar-view [periods]="displayedPeriods"></app-calendar-view>
+          </div>
+        </div>
+      </div>
+    </div>

@@ -1,0 +1,30 @@
+{
+  "NAV": {
+    "HOME": "Главная",
+    "DASHBOARD": "Дашборд",
+    "ADMIN": "Админ"
+  },
+  "AUTH": {
+    "LOGIN": "Войти",
+    "GET_STARTED": "Начать",
+    "SIGN_OUT": "Выйти",
+    "WELCOME_BACK": "С возвращением"
+  },
+  "BOARD": {
+    "YEAR_AT_A_GLANCE": "События которые сейчас происходят"
+  },
+  "ADMIN": {
+    "OVERVIEW_SELECTED_PERIODS": "Обзор выбранных периодов",
+    "CALENDAR_VIEW": "Вид календаря",
+    "ALL_PERIODS": "Все периоды",
+    "NEW_PRESET_NAME": "Название нового пресета",
+    "ADD": "Добавить",
+    "MANAGE_PERIODS": "Управление периодами",
+    "PERIODS": "Периоды",
+    "SELECT_PERIODS_CALENDAR": "Выберите периоды для отображения на календаре",
+    "SHOW_ON_CALENDAR": "Показать на календаре"
+  },
+  "CALENDAR": {
+    "TODAY": "Сегодня"
+  }
+}

@@ -1,0 +1,37 @@
+<div class="timeline-container">
+  <div class="timeline-months">
+    @for (month of months; track month.label) {
+      <div class="month-label" [style.left.%]="month.leftPercent">
+        {{ month.label }}
+      </div>
+    }
+  </div>
+
+  <div class="timeline-track" [style.height.px]="trackHeight">
+    <!-- Month grid lines -->
+    @for (month of months; track month.label) {
+      <div class="month-line" [style.left.%]="month.leftPercent"></div>
+    }
+
+    <!-- Today indicator -->
+    @if (todayPercent >= 0 && todayPercent <= 100) {
+      <div class="today-line" [style.left.%]="todayPercent">
+        <div class="today-label">{{ 'CALENDAR.TODAY' | translate }}</div>
+      </div>
+    }
+
+    <!-- Period blocks -->
+    @for (block of blocks; track block.period.id) {
+      <div
+        class="period-block"
+        [style.left.%]="block.leftPercent"
+        [style.width.%]="block.widthPercent"
+        [style.top.px]="block.row * 44 + 8"
+        [style.background-color]="block.period.color"
+        [title]="block.period.name + ' (' + formatDate(block.period.startDate) + ' – ' + formatDate(block.period.endDate) + ')'"
+      >
+        <span class="block-label">{{ block.period.name }}</span>
+      </div>
+    }
+  </div>
+</div>

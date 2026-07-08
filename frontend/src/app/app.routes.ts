@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard, guestGuard } from './guards/auth.guard';
+import { authGuard, adminGuard, guestGuard } from '@/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -7,6 +7,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/public-board/public-board.component').then(
         (m) => m.PublicBoardComponent,
+      ),
+  },
+  {
+    path: 'dashboard',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/dashboard/dashboard.component').then(
+        (m) => m.DashboardComponent,
       ),
   },
   {
@@ -23,22 +31,22 @@ export const routes: Routes = [
         (m) => m.RegisterComponent,
       ),
   },
-  {
-    path: 'dashboard',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./pages/dashboard/dashboard.component').then(
-        (m) => m.DashboardComponent,
-      ),
-  },
+
   {
     path: 'admin',
     canActivate: [authGuard, adminGuard],
     children: [
       {
         path: '',
-        redirectTo: 'periods',
+        redirectTo: 'board',
         pathMatch: 'full',
+      },
+      {
+        path: 'board',
+        loadComponent: () =>
+          import('./pages/admin/admin-board/admin-board.component').then(
+            (m) => m.AdminBoardComponent,
+          ),
       },
       {
         path: 'periods',

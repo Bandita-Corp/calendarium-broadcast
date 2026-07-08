@@ -1,13 +1,15 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { AuthService } from './services/auth.service';
-import { User } from './models';
+import { AuthService } from '@/services/auth.service';
+import { User } from '@/models';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { LangSwitcherComponent } from '@/components/lang-switcher/lang-switcher.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, TranslateModule, LangSwitcherComponent],
   template: `
     <div class="app-shell">
       <nav class="navbar">
@@ -19,17 +21,19 @@ import { User } from './models';
         </div>
 
         <div class="nav-links">
+          <app-lang-switcher></app-lang-switcher>
+
           <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
-            Board
+            {{ 'NAV.HOME' | translate }}
           </a>
 
           @if (currentUser) {
             <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
-              Dashboard
+              {{ 'NAV.DASHBOARD' | translate }}
             </a>
             @if (isAdmin) {
               <a routerLink="/admin" routerLinkActive="active" class="nav-link admin-link">
-                ⚡ Admin
+                ⚡ {{ 'NAV.ADMIN' | translate }}
               </a>
             }
           }
@@ -46,12 +50,12 @@ import { User } from './models';
                   <span class="user-name">{{ currentUser.name || currentUser.email }}</span>
                   <span class="user-role" [class.admin-badge]="isAdmin">{{ currentUser.role }}</span>
                 </div>
-                <button class="logout-btn" (click)="logout()">Sign out</button>
+                <button class="logout-btn" (click)="logout()">{{ 'AUTH.SIGN_OUT' | translate }}</button>
               </div>
             </div>
           } @else {
-            <a routerLink="/login" class="btn-outline">Login</a>
-            <a routerLink="/register" class="btn-primary">Get Started</a>
+            <a routerLink="/login" class="btn-outline">{{ 'AUTH.LOGIN' | translate }}</a>
+            <a routerLink="/register" class="btn-primary">{{ 'AUTH.GET_STARTED' | translate }}</a>
           }
         </div>
       </nav>
@@ -59,14 +63,33 @@ import { User } from './models';
       <main class="main-content">
         <router-outlet />
       </main>
+
+      <footer class="app-footer">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <span class="brand-icon grayscale">🍋</span>
+            <span class="brand-name">Lemon Seasons</span>
+          </div>
+          <div class="footer-copyright">
+            &copy; {{ currentYear }} Lemon Seasons. All rights reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   `,
 })
 export class AppComponent implements OnInit {
   private authService = inject(AuthService);
+  private translate = inject(TranslateService);
 
   currentUser: User | null = null;
   isAdmin = false;
+  currentYear = new Date().getFullYear();
+
+  constructor() {
+    this.translate.setDefaultLang('en');
+    this.translate.use('ru'); // Russian variant
+  }
 
   ngOnInit() {
     this.authService.currentUser$.subscribe((user) => {

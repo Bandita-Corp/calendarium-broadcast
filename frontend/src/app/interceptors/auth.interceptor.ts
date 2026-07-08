@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { catchError, throwError, switchMap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { AuthService } from '@/services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const http = inject(HttpClient);

@@ -1,0 +1,92 @@
+/* --- Timeline Bar --- */
+.timeline-container {
+  position: relative;
+  padding-bottom: 16px;
+  overflow-x: auto;
+}
+
+.timeline-months {
+  position: relative;
+  height: 24px;
+  min-width: 600px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+
+  .month-label {
+    position: absolute;
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+.timeline-track {
+  position: relative;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  min-width: 600px;
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+
+  .month-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--color-border);
+  }
+
+  .today-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--color-error);
+    z-index: 10;
+
+    .today-label {
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--color-error);
+      white-space: nowrap;
+      background: var(--color-bg-card);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+  }
+
+  .period-block {
+    position: absolute;
+    height: 36px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    cursor: default;
+    transition: filter var(--transition), transform var(--transition);
+    min-width: 4px;
+    overflow: hidden;
+
+    &:hover {
+      filter: brightness(1.15);
+      transform: scaleY(1.05);
+      z-index: 5;
+    }
+
+    .block-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.8);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}

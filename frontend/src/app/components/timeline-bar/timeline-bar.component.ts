@@ -1,6 +1,7 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Period } from '../../models';
+import { Period } from '@/models';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
 interface TimelineBlock {
   period: Period;
@@ -12,75 +13,50 @@ interface TimelineBlock {
 @Component({
   selector: 'app-timeline-bar',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="timeline-container">
-      <div class="timeline-months">
-        @for (month of months; track month.label) {
-          <div class="month-label" [style.left.%]="month.leftPercent">
-            {{ month.label }}
-          </div>
-        }
-      </div>
-
-      <div class="timeline-track" [style.height.px]="trackHeight">
-        <!-- Month grid lines -->
-        @for (month of months; track month.label) {
-          <div class="month-line" [style.left.%]="month.leftPercent"></div>
-        }
-
-        <!-- Today indicator -->
-        @if (todayPercent >= 0 && todayPercent <= 100) {
-          <div class="today-line" [style.left.%]="todayPercent">
-            <div class="today-label">Today</div>
-          </div>
-        }
-
-        <!-- Period blocks -->
-        @for (block of blocks; track block.period.id) {
-          <div
-            class="period-block"
-            [style.left.%]="block.leftPercent"
-            [style.width.%]="block.widthPercent"
-            [style.top.px]="block.row * 44 + 8"
-            [style.background-color]="block.period.color"
-            [title]="block.period.name + ' (' + formatDate(block.period.startDate) + ' – ' + formatDate(block.period.endDate) + ')'"
-          >
-            <span class="block-label">{{ block.period.name }}</span>
-          </div>
-        }
-      </div>
-    </div>
-  `,
+  imports: [CommonModule, TranslateModule],
+  templateUrl: './timeline-bar.component.html',
+  styleUrls: ['./timeline-bar.component.css']
 })
 export class TimelineBarComponent implements OnChanges {
   @Input() periods: Period[] = [];
   @Input() year: number = new Date().getFullYear();
 
+  private translate = inject(TranslateService);
+
   blocks: TimelineBlock[] = [];
   todayPercent = -1;
   trackHeight = 80;
+  months: { label: string, leftPercent: number }[] = [];
 
-  months = [
-    { label: 'Jan', leftPercent: 0 },
-    { label: 'Feb', leftPercent: 8.33 },
-    { label: 'Mar', leftPercent: 16.67 },
-    { label: 'Apr', leftPercent: 25 },
-    { label: 'May', leftPercent: 33.33 },
-    { label: 'Jun', leftPercent: 41.67 },
-    { label: 'Jul', leftPercent: 50 },
-    { label: 'Aug', leftPercent: 58.33 },
-    { label: 'Sep', leftPercent: 66.67 },
-    { label: 'Oct', leftPercent: 75 },
-    { label: 'Nov', leftPercent: 83.33 },
-    { label: 'Dec', leftPercent: 91.67 },
-  ];
+  constructor() {
+    this.translate.onLangChange.subscribe(() => {
+      this.computeMonths();
+    });
+    this.computeMonths();
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['periods'] || changes['year']) {
       this.computeBlocks();
       this.computeToday();
+      this.computeMonths();
     }
+  }
+
+  private computeMonths() {
+    const lang = this.translate.currentLang || this.translate.defaultLang || 'en';
+    const locale = lang === 'ru' ? 'ru-RU' : 'en-US';
+    
+    this.months = Array.from({ length: 12 }).map((_, i) => {
+      const date = new Date(this.year, i, 1);
+      const label = date.toLocaleDateString(locale, { month: 'short' });
+      // Capitalize first letter for consistency in ru
+      const capitalized = label.charAt(0).toUpperCase() + label.slice(1);
+      return {
+        label: capitalized,
+        leftPercent: (i / 12) * 100
+      };
+    });
   }
 
   private computeBlocks() {
@@ -119,7 +95,9 @@ export class TimelineBarComponent implements OnChanges {
   }
 
   formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    const lang = this.translate.currentLang || this.translate.defaultLang || 'en';
+    const locale = lang === 'ru' ? 'ru-RU' : 'en-US';
+    return new Date(dateStr).toLocaleDateString(locale, {
       month: 'short',
       day: 'numeric',
     });

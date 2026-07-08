@@ -1,0 +1,71 @@
+
+    <div class="page dashboard-page">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">
+            {{ 'AUTH.WELCOME_BACK' | translate }}{{ user?.name ? ', ' + user?.name : '' }}!
+          </h1>
+          <p class="page-subtitle">{{ 'ADMIN.OVERVIEW_SELECTED_PERIODS' | translate }}</p>
+        </div>
+        @if (isAdmin) {
+          <a routerLink="/admin/periods" class="btn-primary">
+            + {{ 'ADMIN.MANAGE_PERIODS' | translate }}
+          </a>
+        }
+      </div>
+
+      @if (loading) {
+        <div class="loading-state"><div class="spinner"></div></div>
+      } @else {
+        <section class="section">
+          <div class="section-header">
+            <h2 class="section-title">{{ 'ADMIN.CALENDAR_VIEW' | translate }}</h2>
+            <div class="controls" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <label>Preset:</label>
+                <select [(ngModel)]="selectedPresetId" (change)="onPresetChange()" class="form-input" style="width: auto;">
+                  <option [ngValue]="null">{{ 'ADMIN.ALL_PERIODS' | translate }}</option>
+                  @for (preset of presets; track preset.id) {
+                    <option [ngValue]="preset.id">{{ preset.name }}</option>
+                  }
+                </select>
+              </div>
+              <div style="display: flex; gap: 0.5rem; align-items: center; margin-left: auto;">
+                <input type="text" [(ngModel)]="newPresetName" [placeholder]="'ADMIN.NEW_PRESET_NAME' | translate" class="form-input" style="width: 150px;">
+                <button class="btn-outline" (click)="createPreset()" [disabled]="!newPresetName">{{ 'ADMIN.ADD' | translate }}</button>
+              </div>
+            </div>
+          </div>
+          <app-timeline-bar [periods]="visiblePeriods" [year]="currentYear" />
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <h2 class="section-title">{{ 'ADMIN.PERIODS' | translate }} ({{ periods.length }})</h2>
+            <span class="badge">{{ 'ADMIN.SELECT_PERIODS_CALENDAR' | translate }}</span>
+          </div>
+          <div class="period-cards-grid">
+            @for (period of periods; track period.id) {
+              <div class="period-wrapper" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                  <input type="checkbox" 
+                         [checked]="selectedPeriodIds.has(period.id)"
+                         (change)="togglePeriod(period.id)" />
+                  {{ 'ADMIN.SHOW_ON_CALENDAR' | translate }}
+                </label>
+                <app-period-card [period]="period" [isActive]="isPeriodActive(period)" />
+              </div>
+            } @empty {
+              <div class="empty-state">
+                <span class="empty-icon">🍋</span>
+                <p>No periods yet.</p>
+                @if (isAdmin) {
+                  <a routerLink="/admin/periods" class="btn-outline">Create first period</a>
+                }
+              </div>
+            }
+          </div>
+        </section>
+      }
+    </div>
+  

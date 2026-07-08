@@ -1,0 +1,30 @@
+{
+  "NAV": {
+    "HOME": "Home",
+    "DASHBOARD": "Dashboard",
+    "ADMIN": "Admin"
+  },
+  "AUTH": {
+    "LOGIN": "Login",
+    "GET_STARTED": "Get Started",
+    "SIGN_OUT": "Sign out",
+    "WELCOME_BACK": "Welcome back"
+  },
+  "BOARD": {
+    "YEAR_AT_A_GLANCE": "Live Categories and Calendar"
+  },
+  "ADMIN": {
+    "OVERVIEW_SELECTED_PERIODS": "Here's an overview of your selected periods",
+    "CALENDAR_VIEW": "Calendar View",
+    "ALL_PERIODS": "All periods",
+    "NEW_PRESET_NAME": "New Preset Name",
+    "ADD": "Add",
+    "MANAGE_PERIODS": "Manage Periods",
+    "PERIODS": "Periods",
+    "SELECT_PERIODS_CALENDAR": "Select periods to view on calendar",
+    "SHOW_ON_CALENDAR": "Show on calendar"
+  },
+  "CALENDAR": {
+    "TODAY": "Today"
+  }
+}

@@ -1,0 +1,45 @@
+<div class="calendar-container">
+  <div class="calendar-header">
+    <div class="cal-year">{{ year }}</div>
+    <div class="cal-weekdays">
+      @for (d of weekdays; track d) {
+        <div class="cal-weekday">{{ d }}</div>
+      }
+    </div>
+  </div>
+  
+  <div class="cal-year-grid" (mouseleave)="hoveredDate = null">
+    @for (week of allWeeks; track $index) {
+      <div class="cal-week">
+        @for (day of week; track day ? day.date.getTime() : $index) {
+          @if (day) {
+            <div
+              class="cal-day"
+              [class.today]="day.isToday"
+              [class.first-of-month]="day.isFirstDayOfMonth"
+              [class.has-period]="day.periods.length > 0"
+              [class.selected]="isSelected(day.date)"
+              [class.in-range]="isInRange(day.date)"
+              (click)="onDayClick(day.date)"
+              (mouseenter)="onDayHover(day.date)"
+            >
+              @if (day.isFirstDayOfMonth) {
+                <span class="month-label">{{ monthNames[day.date.getMonth()] }}</span>
+              }
+              <span class="cal-day-num">{{ day.dayNumber }}</span>
+              @if (day.periods.length > 0) {
+                <div class="day-dots">
+                  @for (p of day.periods.slice(0,3); track p.id) {
+                    <span class="dot" [style.background-color]="p.color" [title]="p.name"></span>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="cal-day empty"></div>
+          }
+        }
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,19 @@
+
+    <div class="page hero" style="display: flex; flex-direction: column; height: 100%;">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 class="hero-title gradient-text">Lemon Seasons</h1>
+        <p class="hero-subtitle">{{ 'BOARD.YEAR_AT_A_GLANCE' | translate }}</p>
+        <div style="margin-top: 16px">
+          <a routerLink="/login" class="btn-primary">{{ 'AUTH.LOGIN' | translate }}</a>
+        </div>
+      </div>
+      
+      <div style="width: 100%; max-width: 1200px; margin: 0 auto; flex: 1;">
+        @if (loading) {
+          <div class="loading-state"><div class="spinner"></div></div>
+        } @else {
+          <app-timeline-bar [periods]="periods" [year]="currentYear" />
+        }
+      </div>
+    </div>
+  

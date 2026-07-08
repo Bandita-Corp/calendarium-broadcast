@@ -1,0 +1,59 @@
+
+    <div class="auth-page">
+      <div class="auth-card">
+        <div class="auth-header">
+          <span class="auth-logo">🍋</span>
+          <h1 class="auth-title">{{ 'AUTH.WELCOME_BACK' | translate }}</h1>
+          <p class="auth-subtitle">Sign in to Lemon Seasons</p>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
+          @if (errorMsg) {
+            <div class="alert alert-error">{{ errorMsg }}</div>
+          }
+
+          <div class="form-group">
+            <label class="form-label" for="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              class="form-input"
+              formControlName="email"
+              placeholder="you@example.com"
+              [class.invalid]="form.get('email')?.invalid && form.get('email')?.touched"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              class="form-input"
+              formControlName="password"
+              placeholder="••••••••"
+              [class.invalid]="form.get('password')?.invalid && form.get('password')?.touched"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="btn-primary btn-full"
+            [disabled]="loading || form.invalid"
+          >
+            @if (loading) {
+              <span class="btn-spinner"></span>
+              Signing in...
+            } @else {
+              Sign in
+            }
+          </button>
+        </form>
+
+        <p class="auth-footer">
+          Don't have an account?
+          <a routerLink="/register" class="auth-link">Create one</a>
+        </p>
+      </div>
+    </div>
+  

@@ -1,0 +1,28 @@
+.lang-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  margin-right: 1rem;
+}
+.lang-switcher button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary, #666);
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+.lang-switcher button:hover {
+  color: var(--text-primary, #333);
+  background: rgba(0,0,0,0.05);
+}
+.lang-switcher button.active {
+  color: var(--primary-color, #f59e0b);
+  font-weight: 700;
+}
+.divider {
+  color: #ccc;
+}
