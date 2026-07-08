@@ -1,12 +1,3 @@
-import { defineConfig } from 'prisma/config';
-
-const DATABASE_URL =
-  process.env.DATABASE_URL ||
-  'postgresql://lemon:lemon_secret@localhost:5432/lemon_seasons?schema=public';
-
-export default defineConfig({
-  datasourceUrl: DATABASE_URL,
-  migrate: {
-    url: DATABASE_URL,
-  },
-});
+# Prisma v5 uses schema.prisma for configuration
+# This file is kept for reference only
+# DATABASE_URL is set in .env and read via env("DATABASE_URL") in schema.prisma

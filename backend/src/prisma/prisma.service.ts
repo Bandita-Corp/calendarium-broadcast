@@ -6,14 +6,6 @@ export class PrismaService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
 {
-  constructor() {
-    super({
-      datasourceUrl:
-        process.env.DATABASE_URL ||
-        'postgresql://lemon:lemon_secret@localhost:5432/lemon_seasons?schema=public',
-    });
-  }
-
   async onModuleInit() {
     await this.$connect();
   }
