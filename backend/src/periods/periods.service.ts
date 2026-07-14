@@ -55,6 +55,8 @@ export class PeriodsService {
         color: dto.color,
         userId,
         presetId: dto.presetId,
+        noteType: dto.noteType,
+        noteContent: dto.noteContent,
       },
       include: {
         createdBy: {
@@ -74,6 +76,12 @@ export class PeriodsService {
     if (dto.endDate) data.endDate = new Date(dto.endDate);
     if (dto.presetId !== undefined) {
       data.presetId = dto.presetId === '' ? null : dto.presetId;
+    }
+    if (dto.noteType !== undefined) {
+      data.noteType = dto.noteType === '' ? null : dto.noteType;
+    }
+    if (dto.noteContent !== undefined) {
+      data.noteContent = dto.noteContent === '' ? null : dto.noteContent;
     }
 
     const updated = await this.prisma.period.update({

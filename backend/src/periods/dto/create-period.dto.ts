@@ -24,4 +24,14 @@ export class CreatePeriodDto {
   @IsOptional()
   @IsString()
   presetId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  noteType?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  noteContent?: string;
 }

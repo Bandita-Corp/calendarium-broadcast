@@ -14,6 +14,8 @@ export interface Period {
   endDate: string;
   userId: string;
   presetId?: string;
+  noteType?: string;
+  noteContent?: string;
   createdAt: string;
 }
 

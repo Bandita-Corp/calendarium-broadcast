@@ -110,3 +110,69 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* Mode selector active and hover styles */
+    .mode-btn.active {
+      background: var(--primary-color) !important;
+      color: #fff !important;
+      box-shadow: 0 4px 15px rgba(96, 165, 250, 0.3);
+    }
+    .mode-btn:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    /* Live events pulse animation */
+    @keyframes pulse-anim {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+      }
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+      }
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+      }
+    }
+
+    /* Detail item list styles */
+    .detail-item-box {
+      border-left: 4px solid;
+      padding: 1.2rem;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+      transition: all 0.25s ease;
+    }
+    .detail-item-box:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.04) !important;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Edit mode lists */
+    .preset-edit-card {
+      transition: box-shadow 0.3s ease;
+    }
+    .preset-edit-card:hover {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+    .period-edit-row:hover {
+      background: rgba(255, 255, 255, 0.04) !important;
+    }
+    .btn-icon:hover {
+      filter: none !important;
+      transform: scale(1.15);
+    }
+    .btn-icon {
+      transition: all 0.15s ease;
+    }
+
+    /* Danger delete btn text styling */
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.1) !important;
+      border-color: #ef4444 !important;
+      color: #f87171 !important;
+    }
+

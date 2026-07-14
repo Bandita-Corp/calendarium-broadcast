@@ -11,26 +11,26 @@ export class PresetsController {
 
   @Post()
   create(@Request() req: any, @Body() createPresetDto: CreatePresetDto) {
-    return this.presetsService.create(req.user.userId, createPresetDto);
+    return this.presetsService.create(req.user.id, createPresetDto);
   }
 
   @Get()
   findAll(@Request() req: any) {
-    return this.presetsService.findAll(req.user.userId);
+    return this.presetsService.findAll(req.user.id);
   }
 
   @Get(':id')
   findOne(@Request() req: any, @Param('id') id: string) {
-    return this.presetsService.findOne(id, req.user.userId);
+    return this.presetsService.findOne(id, req.user.id);
   }
 
   @Patch(':id')
   update(@Request() req: any, @Param('id') id: string, @Body() updatePresetDto: UpdatePresetDto) {
-    return this.presetsService.update(id, req.user.userId, updatePresetDto);
+    return this.presetsService.update(id, req.user.id, updatePresetDto);
   }
 
   @Delete(':id')
   remove(@Request() req: any, @Param('id') id: string) {
-    return this.presetsService.remove(id, req.user.userId);
+    return this.presetsService.remove(id, req.user.id);
   }
 }

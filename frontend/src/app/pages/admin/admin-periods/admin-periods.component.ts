@@ -31,6 +31,8 @@ export class AdminPeriodsComponent implements OnInit {
     endDate: ['', Validators.required],
     color: ['#FFD700'],
     presetId: [''],
+    noteType: [''],
+    noteContent: [''],
   });
 
   ngOnInit() {
@@ -58,7 +60,7 @@ export class AdminPeriodsComponent implements OnInit {
 
   openCreateForm() {
     this.editingId = null;
-    this.periodForm.reset({ color: '#FFD700', presetId: '' });
+    this.periodForm.reset({ color: '#FFD700', presetId: '', noteType: '', noteContent: '' });
     this.formError = '';
     this.showForm = true;
   }
@@ -71,6 +73,8 @@ export class AdminPeriodsComponent implements OnInit {
       endDate: period.endDate.split('T')[0],
       color: period.color,
       presetId: period.presetId || '',
+      noteType: period.noteType || '',
+      noteContent: period.noteContent || '',
     });
     this.formError = '';
     this.showForm = true;
@@ -93,6 +97,8 @@ export class AdminPeriodsComponent implements OnInit {
       endDate: this.periodForm.value.endDate!,
       color: this.periodForm.value.color!,
       presetId: this.periodForm.value.presetId || null,
+      noteType: this.periodForm.value.noteType || null,
+      noteContent: this.periodForm.value.noteContent || null,
     };
 
     const request = this.editingId

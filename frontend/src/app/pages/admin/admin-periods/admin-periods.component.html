@@ -54,6 +54,20 @@
               </div>
             </div>
 
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Note Type</label>
+                <input type="text" class="form-input" formControlName="noteType" placeholder="e.g. Event, Task, Broadcast, Reminder" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Note Content</label>
+                <textarea class="form-input" formControlName="noteContent" placeholder="Enter note details..." rows="3" style="width: 100%; border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; background: var(--bg-card); color: var(--text-color); font-family: inherit;"></textarea>
+              </div>
+            </div>
+
             <div class="form-actions">
               <button type="button" class="btn-outline" (click)="cancelForm()">Cancel</button>
               <button type="submit" class="btn-primary" [disabled]="periodForm.invalid || saving">
@@ -75,6 +89,8 @@
                 <th>Color</th>
                 <th>Name</th>
                 <th>Preset</th>
+                <th>Note Type</th>
+                <th>Note Content</th>
                 <th>Start</th>
                 <th>End</th>
                 <th>Duration</th>
@@ -92,6 +108,24 @@
                   <td>
                     @if (getPresetName(period.presetId)) {
                       {{ getPresetName(period.presetId) }}
+                    } @else {
+                      <span class="text-muted" style="opacity: 0.5;">-</span>
+                    }
+                  </td>
+                  <td>
+                    @if (period.noteType) {
+                      <span style="background: rgba(var(--primary-rgb, 96, 165, 250), 0.15); color: var(--primary-color); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                        {{ period.noteType }}
+                      </span>
+                    } @else {
+                      <span class="text-muted" style="opacity: 0.5;">-</span>
+                    }
+                  </td>
+                  <td>
+                    @if (period.noteContent) {
+                      <span class="note-preview" [title]="period.noteContent" style="max-width: 150px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85rem; opacity: 0.8;">
+                        {{ period.noteContent }}
+                      </span>
                     } @else {
                       <span class="text-muted" style="opacity: 0.5;">-</span>
                     }
@@ -115,7 +149,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="8" class="empty-row">No periods yet. Create your first one!</td>
+                  <td colspan="10" class="empty-row">No periods yet. Create your first one!</td>
                 </tr>
               }
             </tbody>
