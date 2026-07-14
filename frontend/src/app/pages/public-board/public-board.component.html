@@ -1,29 +1,138 @@
+<div class="page public-board">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <div>
+      <h1 class="gradient-text" style="margin: 0; font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em;">
+        Lemon Seasons
+      </h1>
+      <p class="subtitle" style="margin: 0.25rem 0 0; opacity: 0.7; font-size: 1rem;">
+        {{ 'BOARD.YEAR_AT_A_GLANCE' | translate }}
+      </p>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <a routerLink="/login" class="btn-primary" style="padding: 0.6rem 1.2rem; border-radius: 20px; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+        🔑 {{ 'AUTH.LOGIN' | translate }}
+      </a>
+    </div>
+  </div>
 
-    <div class="page hero" style="display: flex; flex-direction: column; height: 100%;">
-      <div style="text-align: center; margin-bottom: 2rem;">
-        <h1 class="hero-title gradient-text">Lemon Seasons</h1>
-        <p class="hero-subtitle">{{ 'BOARD.YEAR_AT_A_GLANCE' | translate }}</p>
-        <div style="margin-top: 16px">
-          <a routerLink="/login" class="btn-primary">{{ 'AUTH.LOGIN' | translate }}</a>
+  <div class="dashboard-grid" style="display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+    <!-- Sidebar -->
+    <div class="sidebar" style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <!-- Multiselect Card -->
+      <div class="card glass-panel" style="position: relative; z-index: 10; padding: 1.25rem; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border);">
+        <h3 style="margin-top: 0; margin-bottom: 0.25rem; font-size: 1.1rem; font-weight: 700; color: var(--color-text);">
+          📁 {{ 'ADMIN.PRESETS' | translate }}
+        </h3>
+        <p style="font-size: 0.8rem; opacity: 0.6; margin-bottom: 1rem;">Select categories to show on the board</p>
+        
+        <!-- Custom Multiselect -->
+        <div class="multiselect-container">
+          <button type="button" class="multiselect-btn" (click)="toggleDropdown($event)">
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 90%;">
+              📁 {{ getSelectedPresetsLabel() }}
+            </span>
+            <span style="font-size: 0.75rem; transition: transform 0.2s;" [style.transform]="dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)'">▼</span>
+          </button>
+          
+          <div *ngIf="dropdownOpen" class="multiselect-dropdown">
+            <div class="multiselect-actions">
+              <button type="button" class="btn-sm btn-promote" (click)="selectAllPresets($event)" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Select All</button>
+              <button type="button" class="btn-sm btn-demote" (click)="deselectAllPresets($event)" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Clear All</button>
+            </div>
+            @for (preset of presets; track preset.id) {
+              <label class="multiselect-option" (click)="$event.stopPropagation();">
+                <input type="checkbox" [checked]="isSelected(preset.id)" (change)="togglePreset(preset.id)">
+                <span>{{ preset.name }}</span>
+              </label>
+            }
+            @if (presets.length === 0) {
+              <p style="font-size: 0.8rem; opacity: 0.5; padding: 0.5rem; text-align: center; margin: 0;">No presets found.</p>
+            }
+          </div>
         </div>
       </div>
-      
-      <div style="width: 100%; max-width: 1200px; margin: 0 auto; flex: 1;">
-        <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
-          <label style="font-weight: 500; font-size: 0.95rem;">Filter by Preset:</label>
-          <select [(ngModel)]="selectedPresetId" (change)="onPresetChange()" class="form-input" style="width: auto; max-width: 250px;">
-            <option [ngValue]="null">All Periods</option>
-            @for (preset of presets; track preset.id) {
-              <option [ngValue]="preset.id">{{ preset.name }}</option>
-            }
-          </select>
-        </div>
 
+      <!-- Notes Folders Accordion -->
+      <div class="card glass-panel" style="padding: 1.25rem; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border); display: flex; flex-direction: column; gap: 0.75rem;">
+        <h3 style="margin-top: 0; margin-bottom: 0.25rem; font-size: 1.1rem; font-weight: 700; color: var(--color-text);">
+          📝 Grouped Notes
+        </h3>
+        <p style="font-size: 0.8rem; opacity: 0.6; margin-bottom: 0.5rem;">Browse notes within selected categories</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          @for (preset of presets; track preset.id) {
+            <div *ngIf="isSelected(preset.id)" class="view-folder-item">
+              <!-- Folder Header -->
+              <div class="view-folder-header" (click)="toggleFolder(preset.id)">
+                <div class="folder-title-wrap">
+                  <span class="folder-icon">📁</span>
+                  <span class="folder-title-text">{{ preset.name }}</span>
+                  <span class="folder-badge-count">({{ (preset.periods || []).length }})</span>
+                </div>
+                <span class="folder-chevron" [style.transform]="isFolderExpanded(preset.id) ? 'rotate(90deg)' : 'rotate(0deg)'">▶</span>
+              </div>
+
+              <!-- Folder Body (Grouped Notes) -->
+              <div *ngIf="isFolderExpanded(preset.id)" class="view-folder-body">
+                @for (period of preset.periods || []; track period.id) {
+                  <div class="view-note-card" [style.border-left-color]="period.color">
+                    <div class="note-header">
+                      <span class="note-title">{{ period.name }}</span>
+                      <span *ngIf="period.noteType" class="badge" style="font-size: 0.7rem; padding: 0.1rem 0.4rem; background: rgba(59, 130, 246, 0.15); color: #60a5fa;">
+                        {{ period.noteType }}
+                      </span>
+                    </div>
+                    <div class="note-dates">
+                      📅 <span>{{ period.startDate | date: 'MMM d' }}</span> – <span>{{ period.endDate | date: 'MMM d' }}</span>
+                    </div>
+                    <div *ngIf="period.noteContent" class="note-details">
+                      {{ period.noteContent }}
+                    </div>
+                  </div>
+                }
+                @if ((preset.periods || []).length === 0) {
+                  <p style="font-size: 0.8rem; opacity: 0.5; text-align: center; margin: 0; padding: 0.5rem 0;">No notes configured.</p>
+                }
+              </div>
+            </div>
+          }
+          @if (selectedPresetIds.size === 0) {
+            <p style="font-size: 0.85rem; opacity: 0.5; text-align: center; padding: 1.5rem 0; margin: 0;">No categories selected.</p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Workspace (Timeline vs Calendar) -->
+    <div class="main-content" style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--color-text);">
+          {{ 'BOARD.YEAR_AT_A_GLANCE' | translate }}
+        </h2>
+        
+        <!-- View Toggle (Timeline vs Calendar) -->
+        <div class="view-toggle">
+          <button class="view-toggle-btn" [class.active]="viewMode === 'timeline'" (click)="viewMode = 'timeline'">
+            📊 Timeline
+          </button>
+          <button class="view-toggle-btn" [class.active]="viewMode === 'calendar'" (click)="viewMode = 'calendar'">
+            📅 Calendar
+          </button>
+        </div>
+      </div>
+
+      <div class="card glass-panel" style="padding: 1.5rem; flex: 1; min-height: 500px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border); display: flex; flex-direction: column;">
         @if (loading) {
-          <div class="loading-state"><div class="spinner"></div></div>
+          <div class="loading-state" style="flex: 1; display: flex; justify-content: center; align-items: center;"><div class="spinner"></div></div>
         } @else {
-          <app-timeline-bar [periods]="periods" [year]="currentYear" />
+          <!-- Timeline View -->
+          <app-timeline-bar *ngIf="viewMode === 'timeline'" [periods]="displayedPeriods" [year]="currentYear" style="width: 100%;" />
+
+          <!-- Calendar View -->
+          <app-calendar-view *ngIf="viewMode === 'calendar'" [periods]="displayedPeriods" [year]="currentYear" style="width: 100%;" />
         }
       </div>
     </div>
-  
+  </div>
+</div>

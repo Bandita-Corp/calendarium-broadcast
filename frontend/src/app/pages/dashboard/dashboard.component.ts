@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '@/services/auth.service';
@@ -6,12 +6,13 @@ import { PresetsService } from '@/services/presets.service';
 import { PeriodsService } from '@/services/periods.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { CalendarViewComponent } from '@/components/calendar-view/calendar-view.component';
+import { TimelineBarComponent } from '@/components/timeline-bar/timeline-bar.component';
 import { Preset, Period } from '@/models';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, CalendarViewComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, CalendarViewComponent, TimelineBarComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -25,6 +26,9 @@ export class DashboardComponent implements OnInit {
   expandedPresetIds = new Set<string>();
   newPresetName = '';
   currentMode: 'live' | 'edit' = 'live';
+  currentYear = new Date().getFullYear();
+  viewSubMode: 'timeline' | 'calendar' = 'timeline';
+  dropdownOpen = false;
 
   // Period Form fields
   showPeriodForm = false;
@@ -247,5 +251,44 @@ export class DashboardComponent implements OnInit {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  // Multiselect Dropdown Handlers
+  toggleDropdown(event: MouseEvent) {
+    event.stopPropagation();
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+  getSelectedPresetsLabel(): string {
+    if (this.selectedPresetIds.size === 0) {
+      return 'Select Folders';
+    }
+    if (this.selectedPresetIds.size === this.presets.length) {
+      return 'All Folders Selected';
+    }
+    if (this.selectedPresetIds.size === 1) {
+      const firstId = Array.from(this.selectedPresetIds)[0];
+      const preset = this.presets.find(p => p.id === firstId);
+      return preset ? preset.name : '1 Folder Selected';
+    }
+    return `${this.selectedPresetIds.size} Folders Selected`;
+  }
+
+  selectAllPresets(event: MouseEvent) {
+    event.stopPropagation();
+    this.presets.forEach(p => this.selectedPresetIds.add(p.id));
+  }
+
+  deselectAllPresets(event: MouseEvent) {
+    event.stopPropagation();
+    this.selectedPresetIds.clear();
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.multiselect-container')) {
+      this.dropdownOpen = false;
+    }
   }
 }

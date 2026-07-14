@@ -25,22 +25,91 @@
   <!-- LIVE / VIEW MODE -->
   <div *ngIf="currentMode === 'live'" class="dashboard-grid">
     <div class="sidebar">
-      <div class="card glass-panel presets-card" style="margin-bottom: 1.5rem;">
-        <h3>Presets</h3>
-        <p class="section-desc" style="font-size: 0.8rem; opacity: 0.6; margin-top: -0.5rem; margin-bottom: 1rem;">Toggle categories on calendar</p>
-        <div class="presets-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+      <!-- Folder/Preset selection multiselect -->
+      <div class="card glass-panel presets-card" style="position: relative; z-index: 10; margin-bottom: 1.5rem; padding: 1.25rem;">
+        <h3 style="margin-top: 0; margin-bottom: 0.25rem; font-size: 1.1rem; font-weight: 700; color: var(--color-text);">
+          📁 {{ 'ADMIN.PRESETS' | translate }}
+        </h3>
+        <p class="section-desc" style="font-size: 0.8rem; opacity: 0.6; margin-bottom: 1rem;">Select categories to show on the board</p>
+        
+        <!-- Custom Multiselect -->
+        <div class="multiselect-container">
+          <button type="button" class="multiselect-btn" (click)="toggleDropdown($event)">
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 90%;">
+              📁 {{ getSelectedPresetsLabel() }}
+            </span>
+            <span style="font-size: 0.75rem; transition: transform 0.2s;" [style.transform]="dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)'">▼</span>
+          </button>
+          
+          <div *ngIf="dropdownOpen" class="multiselect-dropdown">
+            <div class="multiselect-actions">
+              <button type="button" class="btn-sm btn-promote" (click)="selectAllPresets($event)" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Select All</button>
+              <button type="button" class="btn-sm btn-demote" (click)="deselectAllPresets($event)" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Clear All</button>
+            </div>
+            @for (preset of presets; track preset.id) {
+              <label class="multiselect-option" (click)="$event.stopPropagation();">
+                <input type="checkbox" [checked]="isSelected(preset.id)" (change)="togglePreset(preset.id)">
+                <span>{{ preset.name }}</span>
+              </label>
+            }
+            @if (presets.length === 0) {
+              <p style="font-size: 0.8rem; opacity: 0.5; padding: 0.5rem; text-align: center; margin: 0;">No presets found.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes Folders Accordion -->
+      <div class="card glass-panel" style="margin-bottom: 1.5rem; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+        <h3 style="margin-top: 0; margin-bottom: 0.25rem; font-size: 1.1rem; font-weight: 700; color: var(--color-text);">
+          📝 Grouped Notes
+        </h3>
+        <p style="font-size: 0.8rem; opacity: 0.6; margin-bottom: 0.5rem;">Browse notes within selected categories</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
           @for (preset of presets; track preset.id) {
-            <label class="preset-toggle" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.25rem 0;">
-              <input type="checkbox" [checked]="isSelected(preset.id)" (change)="togglePreset(preset.id)">
-              <span class="preset-name">{{ preset.name }}</span>
-            </label>
+            <div *ngIf="isSelected(preset.id)" class="view-folder-item">
+              <!-- Folder Header -->
+              <div class="view-folder-header" (click)="toggleFolder(preset.id)">
+                <div class="folder-title-wrap">
+                  <span class="folder-icon">📁</span>
+                  <span class="folder-title-text">{{ preset.name }}</span>
+                  <span class="folder-badge-count">({{ (preset.periods || []).length }})</span>
+                </div>
+                <span class="folder-chevron" [style.transform]="isFolderExpanded(preset.id) ? 'rotate(90deg)' : 'rotate(0deg)'">▶</span>
+              </div>
+
+              <!-- Folder Body (Grouped Notes) -->
+              <div *ngIf="isFolderExpanded(preset.id)" class="view-folder-body">
+                @for (period of preset.periods || []; track period.id) {
+                  <div class="view-note-card" [style.border-left-color]="period.color">
+                    <div class="note-header">
+                      <span class="note-title">{{ period.name }}</span>
+                      <span *ngIf="period.noteType" class="badge" style="font-size: 0.7rem; padding: 0.1rem 0.4rem; background: rgba(59, 130, 246, 0.15); color: #60a5fa;">
+                        {{ period.noteType }}
+                      </span>
+                    </div>
+                    <div class="note-dates">
+                      📅 <span>{{ period.startDate | date: 'MMM d' }}</span> – <span>{{ period.endDate | date: 'MMM d' }}</span>
+                    </div>
+                    <div *ngIf="period.noteContent" class="note-details">
+                      {{ period.noteContent }}
+                    </div>
+                  </div>
+                }
+                @if ((preset.periods || []).length === 0) {
+                  <p style="font-size: 0.8rem; opacity: 0.5; text-align: center; margin: 0; padding: 0.5rem 0;">No notes configured.</p>
+                }
+              </div>
+            </div>
           }
-          @if (presets.length === 0) {
-            <p class="empty-text">No presets found.</p>
+          @if (selectedPresetIds.size === 0) {
+            <p style="font-size: 0.85rem; opacity: 0.5; text-align: center; padding: 1.5rem 0; margin: 0;">No categories selected.</p>
           }
         </div>
       </div>
 
+      <!-- Today's Live Events quick summary -->
       <div class="card glass-panel live-card">
         <h3>
           <span class="live-pulse" style="display: inline-block; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e; margin-right: 0.5rem; animation: pulse-anim 2s infinite;"></span>
@@ -48,7 +117,7 @@
         </h3>
         <div class="live-list" style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;">
           @for (period of livePeriods; track period.id) {
-            <div class="live-item" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem; background: rgba(255,255,255,0.03); border-radius: 6px; border-left: 3px solid;">
+            <div class="live-item" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem; background: rgba(255,255,255,0.03); border-radius: 6px; border-left: 3px solid;" [style.border-left-color]="period.color">
               <span class="dot" [style.background-color]="period.color" style="width: 8px; height: 8px; border-radius: 50%;"></span>
               <div style="flex: 1; min-width: 0;">
                 <span class="live-name" style="font-weight: 500; font-size: 0.9rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ period.name }}</span>
@@ -64,9 +133,28 @@
     </div>
 
     <div class="main-content">
-      <div class="card glass-panel calendar-card">
-        <h2>{{ 'BOARD.YEAR_AT_A_GLANCE' | translate }}</h2>
-        <app-calendar-view [periods]="displayedPeriods"></app-calendar-view>
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <h2 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--color-text);">
+          {{ 'BOARD.YEAR_AT_A_GLANCE' | translate }}
+        </h2>
+        
+        <!-- View Toggle (Timeline vs Calendar) -->
+        <div class="view-toggle">
+          <button class="view-toggle-btn" [class.active]="viewSubMode === 'timeline'" (click)="viewSubMode = 'timeline'">
+            📊 Timeline
+          </button>
+          <button class="view-toggle-btn" [class.active]="viewSubMode === 'calendar'" (click)="viewSubMode = 'calendar'">
+            📅 Calendar
+          </button>
+        </div>
+      </div>
+
+      <div class="card glass-panel calendar-card" style="min-height: auto; padding: 1.5rem; display: flex; flex-direction: column;">
+        <!-- Timeline View -->
+        <app-timeline-bar *ngIf="viewSubMode === 'timeline'" [periods]="displayedPeriods" [year]="currentYear" style="width: 100%;"></app-timeline-bar>
+
+        <!-- Calendar View -->
+        <app-calendar-view *ngIf="viewSubMode === 'calendar'" [periods]="displayedPeriods" [year]="currentYear" style="width: 100%;"></app-calendar-view>
       </div>
 
       <!-- Live Details Cards -->
