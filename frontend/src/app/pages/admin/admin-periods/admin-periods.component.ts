@@ -31,8 +31,9 @@ export class AdminPeriodsComponent implements OnInit {
     endDate: ['', Validators.required],
     color: ['#FFD700'],
     presetId: [''],
-    noteType: [''],
+    noteType: ['Period'],
     noteContent: [''],
+    hashtagsText: [''],
   });
 
   ngOnInit() {
@@ -60,7 +61,7 @@ export class AdminPeriodsComponent implements OnInit {
 
   openCreateForm() {
     this.editingId = null;
-    this.periodForm.reset({ color: '#FFD700', presetId: '', noteType: '', noteContent: '' });
+    this.periodForm.reset({ color: '#FFD700', presetId: '', noteType: 'Period', noteContent: '', hashtagsText: '' });
     this.formError = '';
     this.showForm = true;
   }
@@ -73,8 +74,9 @@ export class AdminPeriodsComponent implements OnInit {
       endDate: period.endDate.split('T')[0],
       color: period.color,
       presetId: period.presetId || '',
-      noteType: period.noteType || '',
+      noteType: period.noteType || 'Period',
       noteContent: period.noteContent || '',
+      hashtagsText: (period.hashtags || []).join(', '),
     });
     this.formError = '';
     this.showForm = true;
@@ -91,6 +93,12 @@ export class AdminPeriodsComponent implements OnInit {
     this.saving = true;
     this.formError = '';
 
+    const hashtagsText = this.periodForm.value.hashtagsText || '';
+    const hashtags = hashtagsText
+      .split(',')
+      .map(tag => tag.trim().replace(/^#/, ''))
+      .filter(tag => tag.length > 0);
+
     const payload = {
       name: this.periodForm.value.name!,
       startDate: this.periodForm.value.startDate!,
@@ -99,6 +107,7 @@ export class AdminPeriodsComponent implements OnInit {
       presetId: this.periodForm.value.presetId || null,
       noteType: this.periodForm.value.noteType || null,
       noteContent: this.periodForm.value.noteContent || null,
+      hashtags: hashtags,
     };
 
     const request = this.editingId

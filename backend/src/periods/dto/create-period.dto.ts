@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsHexColor,
   MaxLength,
+  IsArray,
 } from 'class-validator';
 
 export class CreatePeriodDto {
@@ -34,4 +35,9 @@ export class CreatePeriodDto {
   @IsString()
   @MaxLength(1000)
   noteContent?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  hashtags?: string[];
 }

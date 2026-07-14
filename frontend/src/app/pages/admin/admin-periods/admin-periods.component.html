@@ -57,7 +57,19 @@
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Note Type</label>
-                <input type="text" class="form-input" formControlName="noteType" placeholder="e.g. Event, Task, Broadcast, Reminder" />
+                <select class="form-input" formControlName="noteType">
+                  <option value="Period">📅 Period</option>
+                  <option value="Vibe">✨ Vibe</option>
+                  <option value="Impression">💭 Impression</option>
+                  <option value="Event">🎈 Event</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Hashtags (comma separated)</label>
+                <input type="text" class="form-input" formControlName="hashtagsText" placeholder="e.g. holiday, vibe, focus" />
               </div>
             </div>
 
@@ -90,6 +102,7 @@
                 <th>Name</th>
                 <th>Preset</th>
                 <th>Note Type</th>
+                <th>Hashtags</th>
                 <th>Note Content</th>
                 <th>Start</th>
                 <th>End</th>
@@ -114,12 +127,26 @@
                   </td>
                   <td>
                     @if (period.noteType) {
-                      <span style="background: rgba(var(--primary-rgb, 96, 165, 250), 0.15); color: var(--primary-color); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                      <span class="note-type-badge-custom" 
+                            [ngClass]="{
+                              'badge-period': period.noteType.toLowerCase() === 'period',
+                              'badge-vibe': period.noteType.toLowerCase() === 'vibe',
+                              'badge-impression': period.noteType.toLowerCase() === 'impression',
+                              'badge-event': period.noteType.toLowerCase() === 'event'
+                            }">
                         {{ period.noteType }}
                       </span>
                     } @else {
                       <span class="text-muted" style="opacity: 0.5;">-</span>
                     }
+                  </td>
+                  <td>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.25rem; max-width: 150px;">
+                      <span *ngFor="let tag of period.hashtags" class="tag-chip" style="font-size: 0.65rem; padding: 1px 6px;">#{{ tag }}</span>
+                      @if (!(period.hashtags?.length)) {
+                        <span class="text-muted" style="opacity: 0.5;">-</span>
+                      }
+                    </div>
                   </td>
                   <td>
                     @if (period.noteContent) {

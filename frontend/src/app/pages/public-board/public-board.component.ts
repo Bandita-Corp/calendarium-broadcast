@@ -60,10 +60,45 @@ export class PublicBoardComponent implements OnInit {
     });
   }
 
+  selectedTagFilter: string | null = null;
+
   get displayedPeriods(): Period[] {
-    return this.presets
+    const list = this.presets
       .filter(p => this.selectedPresetIds.has(p.id))
       .flatMap(p => p.periods || []);
+
+    if (this.selectedTagFilter) {
+      const filter = this.selectedTagFilter.toLowerCase();
+      return list.filter(p => 
+        (p.hashtags || []).some(t => t.toLowerCase() === filter)
+      );
+    }
+    return list;
+  }
+
+  get activeFolderTags(): string[] {
+    const tags = new Set<string>();
+    this.presets
+      .filter(p => this.selectedPresetIds.has(p.id))
+      .flatMap(p => p.periods || [])
+      .forEach(period => {
+        if (period.hashtags) {
+          period.hashtags.forEach(tag => tags.add(tag.toLowerCase()));
+        }
+      });
+    return Array.from(tags).sort();
+  }
+
+  toggleTagFilter(tag: string) {
+    if (this.selectedTagFilter === tag) {
+      this.selectedTagFilter = null;
+    } else {
+      this.selectedTagFilter = tag;
+    }
+  }
+
+  clearTagFilter() {
+    this.selectedTagFilter = null;
   }
 
   // Multiselect Dropdown Handlers

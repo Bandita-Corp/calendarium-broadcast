@@ -34,13 +34,16 @@ export class DashboardComponent implements OnInit {
   showPeriodForm = false;
   editingPeriodId: string | null = null;
   activePresetIdForPeriod = '';
+  selectedTagFilter: string | null = null;
+  newHashtagText = '';
   periodFormModel = {
     name: '',
     startDate: '',
     endDate: '',
     color: '#3b82f6',
-    noteType: '',
-    noteContent: ''
+    noteType: 'Period',
+    noteContent: '',
+    hashtags: [] as string[]
   };
 
   ngOnInit() {
@@ -118,9 +121,42 @@ export class DashboardComponent implements OnInit {
   }
 
   get displayedPeriods(): Period[] {
-    return this.presets
+    const list = this.presets
       .filter(p => this.selectedPresetIds.has(p.id))
       .flatMap(p => p.periods || []);
+    
+    if (this.selectedTagFilter) {
+      const filter = this.selectedTagFilter.toLowerCase();
+      return list.filter(p => 
+        (p.hashtags || []).some(t => t.toLowerCase() === filter)
+      );
+    }
+    return list;
+  }
+
+  get activeFolderTags(): string[] {
+    const tags = new Set<string>();
+    this.presets
+      .filter(p => this.selectedPresetIds.has(p.id))
+      .flatMap(p => p.periods || [])
+      .forEach(period => {
+        if (period.hashtags) {
+          period.hashtags.forEach(tag => tags.add(tag.toLowerCase()));
+        }
+      });
+    return Array.from(tags).sort();
+  }
+
+  toggleTagFilter(tag: string) {
+    if (this.selectedTagFilter === tag) {
+      this.selectedTagFilter = null;
+    } else {
+      this.selectedTagFilter = tag;
+    }
+  }
+
+  clearTagFilter() {
+    this.selectedTagFilter = null;
   }
 
   get livePeriods(): Period[] {
@@ -146,9 +182,11 @@ export class DashboardComponent implements OnInit {
       startDate: '',
       endDate: '',
       color: '#3b82f6',
-      noteType: '',
-      noteContent: ''
+      noteType: 'Period',
+      noteContent: '',
+      hashtags: []
     };
+    this.newHashtagText = '';
     this.showPeriodForm = true;
   }
 
@@ -160,9 +198,11 @@ export class DashboardComponent implements OnInit {
       startDate: period.startDate.split('T')[0],
       endDate: period.endDate.split('T')[0],
       color: period.color || '#3b82f6',
-      noteType: period.noteType || '',
-      noteContent: period.noteContent || ''
+      noteType: period.noteType || 'Period',
+      noteContent: period.noteContent || '',
+      hashtags: period.hashtags ? [...period.hashtags] : []
     };
+    this.newHashtagText = '';
     this.showPeriodForm = true;
   }
 
@@ -177,7 +217,8 @@ export class DashboardComponent implements OnInit {
       color: model.color,
       presetId: this.activePresetIdForPeriod,
       noteType: model.noteType || null,
-      noteContent: model.noteContent || null
+      noteContent: model.noteContent || null,
+      hashtags: model.hashtags || []
     };
 
     if (this.editingPeriodId) {
@@ -240,10 +281,31 @@ export class DashboardComponent implements OnInit {
       startDate: startStr,
       endDate: endStr,
       color: '#3b82f6',
-      noteType: '',
-      noteContent: ''
+      noteType: 'Period',
+      noteContent: '',
+      hashtags: []
     };
+    this.newHashtagText = '';
     this.showPeriodForm = true;
+  }
+
+  addHashtag(event?: Event) {
+    if (event) {
+      event.preventDefault();
+    }
+    const raw = this.newHashtagText.trim().replace(/^#/, '');
+    if (raw && !this.periodFormModel.hashtags.includes(raw)) {
+      this.periodFormModel.hashtags.push(raw);
+    }
+    this.newHashtagText = '';
+  }
+
+  removeHashtag(index: number) {
+    this.periodFormModel.hashtags.splice(index, 1);
+  }
+
+  selectNoteType(type: string) {
+    this.periodFormModel.noteType = type;
   }
 
   private formatDateToLocalYYYYMMDD(date: Date): string {

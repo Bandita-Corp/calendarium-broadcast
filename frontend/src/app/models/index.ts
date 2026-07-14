@@ -16,6 +16,7 @@ export interface Period {
   presetId?: string;
   noteType?: string;
   noteContent?: string;
+  hashtags?: string[];
   createdAt: string;
 }
 

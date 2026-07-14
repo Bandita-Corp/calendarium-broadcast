@@ -66,6 +66,18 @@
         </h3>
         <p style="font-size: 0.8rem; opacity: 0.6; margin-bottom: 0.5rem;">Browse notes within selected categories</p>
         
+        <!-- Hashtag Filter Bar -->
+        <div *ngIf="activeFolderTags.length > 0" class="tag-filter-bar">
+          <span class="filter-label">🏷️ Filter:</span>
+          <span *ngFor="let tag of activeFolderTags" 
+                class="tag-chip" 
+                [class.active]="selectedTagFilter === tag"
+                (click)="toggleTagFilter(tag)">
+            #{{ tag }}
+          </span>
+          <button *ngIf="selectedTagFilter" class="clear-filter-btn" (click)="clearTagFilter()">Clear</button>
+        </div>
+
         <div style="display: flex; flex-direction: column; gap: 0.75rem;">
           @for (preset of presets; track preset.id) {
             <div *ngIf="isSelected(preset.id)" class="view-folder-item">
@@ -85,7 +97,13 @@
                   <div class="view-note-card" [style.border-left-color]="period.color">
                     <div class="note-header">
                       <span class="note-title">{{ period.name }}</span>
-                      <span *ngIf="period.noteType" class="badge" style="font-size: 0.7rem; padding: 0.1rem 0.4rem; background: rgba(59, 130, 246, 0.15); color: #60a5fa;">
+                      <span *ngIf="period.noteType" class="note-type-badge-custom" 
+                            [ngClass]="{
+                              'badge-period': period.noteType.toLowerCase() === 'period',
+                              'badge-vibe': period.noteType.toLowerCase() === 'vibe',
+                              'badge-impression': period.noteType.toLowerCase() === 'impression',
+                              'badge-event': period.noteType.toLowerCase() === 'event'
+                            }">
                         {{ period.noteType }}
                       </span>
                     </div>
@@ -94,6 +112,14 @@
                     </div>
                     <div *ngIf="period.noteContent" class="note-details">
                       {{ period.noteContent }}
+                    </div>
+                    <!-- Note Hashtags -->
+                    <div *ngIf="period.hashtags?.length" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.25rem;">
+                      <span *ngFor="let tag of period.hashtags" class="tag-chip"
+                            [class.active]="selectedTagFilter === tag"
+                            (click)="toggleTagFilter(tag); $event.stopPropagation();">
+                        #{{ tag }}
+                      </span>
                     </div>
                   </div>
                 }
@@ -169,7 +195,13 @@
               <div class="detail-item-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                 <span class="detail-name" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color);">{{ period.name }}</span>
                 @if (period.noteType) {
-                  <span class="badge note-type-badge" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600;">
+                  <span class="note-type-badge-custom" 
+                        [ngClass]="{
+                          'badge-period': period.noteType.toLowerCase() === 'period',
+                          'badge-vibe': period.noteType.toLowerCase() === 'vibe',
+                          'badge-impression': period.noteType.toLowerCase() === 'impression',
+                          'badge-event': period.noteType.toLowerCase() === 'event'
+                        }">
                     {{ period.noteType }}
                   </span>
                 }
@@ -182,6 +214,14 @@
                   {{ period.noteContent }}
                 </div>
               }
+              <!-- Live Tags -->
+              <div *ngIf="period.hashtags?.length" style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem;">
+                <span *ngFor="let tag of period.hashtags" class="tag-chip"
+                      [class.active]="selectedTagFilter === tag"
+                      (click)="toggleTagFilter(tag)">
+                  #{{ tag }}
+                </span>
+              </div>
             </div>
           }
           @if (livePeriods.length === 0) {
@@ -256,11 +296,24 @@
                   @for (period of preset.periods || []; track period.id) {
                     <div class="nested-event-row" style="display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0.5rem; background: rgba(255,255,255,0.02); border-radius: 6px; border-left: 3px solid;" [style.border-left-color]="period.color">
                       <div style="flex: 1; min-width: 0; padding-right: 0.5rem;">
-                        <div style="font-weight: 500; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="period.name">
-                          {{ period.name }}
+                        <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 500; font-size: 0.85rem;">
+                          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="period.name">{{ period.name }}</span>
+                          <span *ngIf="period.noteType" class="note-type-badge-custom" 
+                                [ngClass]="{
+                                  'badge-period': period.noteType.toLowerCase() === 'period',
+                                  'badge-vibe': period.noteType.toLowerCase() === 'vibe',
+                                  'badge-impression': period.noteType.toLowerCase() === 'impression',
+                                  'badge-event': period.noteType.toLowerCase() === 'event'
+                                }">
+                            {{ period.noteType }}
+                          </span>
                         </div>
                         <div style="font-size: 0.75rem; opacity: 0.5; margin-top: 0.1rem;">
                           {{ period.startDate | date: 'MM/dd' }} - {{ period.endDate | date: 'MM/dd' }}
+                        </div>
+                        <!-- Tags -->
+                        <div *ngIf="period.hashtags?.length" style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem;">
+                          <span *ngFor="let tag of period.hashtags" class="tag-chip" style="font-size: 0.65rem; padding: 1px 6px;">#{{ tag }}</span>
                         </div>
                       </div>
                       
@@ -354,8 +407,28 @@
         </div>
         <div style="flex: 1.5;">
           <label class="form-label" style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; font-weight: 600; opacity: 0.9;">Note Type</label>
-          <input type="text" [(ngModel)]="periodFormModel.noteType" class="form-input" style="width: 100%;" placeholder="e.g. Broadcast, Task, Event" />
+          <div class="note-type-selector">
+            <button type="button" class="note-type-select-btn" [class.active]="periodFormModel.noteType === 'Period'" (click)="selectNoteType('Period')">📅 Period</button>
+            <button type="button" class="note-type-select-btn" [class.active]="periodFormModel.noteType === 'Vibe'" (click)="selectNoteType('Vibe')">✨ Vibe</button>
+            <button type="button" class="note-type-select-btn" [class.active]="periodFormModel.noteType === 'Impression'" (click)="selectNoteType('Impression')">💭 Impression</button>
+            <button type="button" class="note-type-select-btn" [class.active]="periodFormModel.noteType === 'Event'" (click)="selectNoteType('Event')">🎈 Event</button>
+          </div>
         </div>
+      </div>
+      
+      <!-- Hashtag Chip Input UI -->
+      <div>
+        <label class="form-label" style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; font-weight: 600; opacity: 0.9;">Hashtags</label>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.5rem;" *ngIf="periodFormModel.hashtags.length > 0">
+          <span *ngFor="let tag of periodFormModel.hashtags; let i = index" class="editable-tag">
+            #{{ tag }}
+            <span class="remove-tag-btn" (click)="removeHashtag(i)">&times;</span>
+          </span>
+        </div>
+        <input type="text" [(ngModel)]="newHashtagText" 
+               (keydown.enter)="addHashtag($event)" 
+               class="form-input" style="width: 100%;" 
+               placeholder="Type a tag (e.g. happy) and press Enter" />
       </div>
       
       <div>

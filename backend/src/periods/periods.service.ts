@@ -57,6 +57,7 @@ export class PeriodsService {
         presetId: dto.presetId,
         noteType: dto.noteType,
         noteContent: dto.noteContent,
+        hashtags: dto.hashtags || [],
       },
       include: {
         createdBy: {
@@ -82,6 +83,9 @@ export class PeriodsService {
     }
     if (dto.noteContent !== undefined) {
       data.noteContent = dto.noteContent === '' ? null : dto.noteContent;
+    }
+    if (dto.hashtags !== undefined) {
+      data.hashtags = dto.hashtags;
     }
 
     const updated = await this.prisma.period.update({
