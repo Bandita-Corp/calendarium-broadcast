@@ -29,4 +29,8 @@ export class PresetsService {
   deletePreset(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  getPublicPresets(): Observable<Preset[]> {
+    return this.http.get<Preset[]>('/api/public/presets');
+  }
 }

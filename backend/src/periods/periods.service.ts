@@ -72,7 +72,9 @@ export class PeriodsService {
     if (dto.color) data.color = dto.color;
     if (dto.startDate) data.startDate = new Date(dto.startDate);
     if (dto.endDate) data.endDate = new Date(dto.endDate);
-    if (dto.presetId) data.presetId = dto.presetId;
+    if (dto.presetId !== undefined) {
+      data.presetId = dto.presetId === '' ? null : dto.presetId;
+    }
 
     const updated = await this.prisma.period.update({
       where: { id },

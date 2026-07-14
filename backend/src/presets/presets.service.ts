@@ -51,4 +51,11 @@ export class PresetsService {
       where: { id },
     });
   }
+
+  async findAllPublic() {
+    return this.prisma.preset.findMany({
+      orderBy: { name: 'asc' },
+      include: { periods: true },
+    });
+  }
 }

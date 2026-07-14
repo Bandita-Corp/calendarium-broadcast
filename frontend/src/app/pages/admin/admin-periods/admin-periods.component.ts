@@ -2,7 +2,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PeriodsService } from '@/services/periods.service';
-import { Period } from '@/models';
+import { PresetsService } from '@/services/presets.service';
+import { Period, Preset } from '@/models';
 
 @Component({
   selector: 'app-admin-periods',
@@ -13,9 +14,11 @@ import { Period } from '@/models';
 })
 export class AdminPeriodsComponent implements OnInit {
   private periodsService = inject(PeriodsService);
+  private presetsService = inject(PresetsService);
   private fb = inject(FormBuilder);
 
   periods: Period[] = [];
+  presets: Preset[] = [];
   loading = true;
   showForm = false;
   saving = false;
@@ -27,10 +30,19 @@ export class AdminPeriodsComponent implements OnInit {
     startDate: ['', Validators.required],
     endDate: ['', Validators.required],
     color: ['#FFD700'],
+    presetId: [''],
   });
 
   ngOnInit() {
+    this.loadPresets();
     this.loadPeriods();
+  }
+
+  loadPresets() {
+    this.presetsService.getPresets().subscribe({
+      next: (p) => (this.presets = p),
+      error: (err) => console.error('Failed to load presets:', err),
+    });
   }
 
   loadPeriods() {
@@ -46,7 +58,7 @@ export class AdminPeriodsComponent implements OnInit {
 
   openCreateForm() {
     this.editingId = null;
-    this.periodForm.reset({ color: '#FFD700' });
+    this.periodForm.reset({ color: '#FFD700', presetId: '' });
     this.formError = '';
     this.showForm = true;
   }
@@ -58,6 +70,7 @@ export class AdminPeriodsComponent implements OnInit {
       startDate: period.startDate.split('T')[0],
       endDate: period.endDate.split('T')[0],
       color: period.color,
+      presetId: period.presetId || '',
     });
     this.formError = '';
     this.showForm = true;
@@ -79,6 +92,7 @@ export class AdminPeriodsComponent implements OnInit {
       startDate: this.periodForm.value.startDate!,
       endDate: this.periodForm.value.endDate!,
       color: this.periodForm.value.color!,
+      presetId: this.periodForm.value.presetId || null,
     };
 
     const request = this.editingId
@@ -120,5 +134,11 @@ export class AdminPeriodsComponent implements OnInit {
 
   isFuture(period: Period): boolean {
     return new Date(period.startDate) > new Date();
+  }
+
+  getPresetName(presetId?: string): string {
+    if (!presetId) return '';
+    const preset = this.presets.find((p) => p.id === presetId);
+    return preset ? preset.name : '';
   }
 }

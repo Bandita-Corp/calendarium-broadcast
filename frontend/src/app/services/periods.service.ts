@@ -25,4 +25,12 @@ export class PeriodsService {
   deletePeriod(id: string) {
     return this.http.delete(`/api/periods/${id}`);
   }
+
+  getPublicPeriods(presetId?: string) {
+    const params: Record<string, string> = {};
+    if (presetId) {
+      params['presetId'] = presetId;
+    }
+    return this.http.get<Period[]>('/api/public/periods', { params });
+  }
 }

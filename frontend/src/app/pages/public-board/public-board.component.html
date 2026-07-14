@@ -9,6 +9,16 @@
       </div>
       
       <div style="width: 100%; max-width: 1200px; margin: 0 auto; flex: 1;">
+        <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+          <label style="font-weight: 500; font-size: 0.95rem;">Filter by Preset:</label>
+          <select [(ngModel)]="selectedPresetId" (change)="onPresetChange()" class="form-input" style="width: auto; max-width: 250px;">
+            <option [ngValue]="null">All Periods</option>
+            @for (preset of presets; track preset.id) {
+              <option [ngValue]="preset.id">{{ preset.name }}</option>
+            }
+          </select>
+        </div>
+
         @if (loading) {
           <div class="loading-state"><div class="spinner"></div></div>
         } @else {
