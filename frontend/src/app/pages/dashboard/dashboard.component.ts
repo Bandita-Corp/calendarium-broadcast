@@ -22,6 +22,7 @@ export class DashboardComponent implements OnInit {
 
   presets: Preset[] = [];
   selectedPresetIds = new Set<string>();
+  expandedPresetIds = new Set<string>();
   newPresetName = '';
   currentMode: 'live' | 'edit' = 'live';
 
@@ -48,6 +49,10 @@ export class DashboardComponent implements OnInit {
         this.presets = presets;
         if (selectAll) {
           presets.forEach(p => this.selectedPresetIds.add(p.id));
+          // Expand the first preset folder by default
+          if (presets.length > 0 && this.expandedPresetIds.size === 0) {
+            this.expandedPresetIds.add(presets[0].id);
+          }
         }
       },
       error: (err) => console.error('Error fetching presets:', err)
@@ -71,12 +76,25 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  toggleFolder(id: string) {
+    if (this.expandedPresetIds.has(id)) {
+      this.expandedPresetIds.delete(id);
+    } else {
+      this.expandedPresetIds.add(id);
+    }
+  }
+
+  isFolderExpanded(id: string): boolean {
+    return this.expandedPresetIds.has(id);
+  }
+
   createPreset() {
     if (!this.newPresetName) return;
     this.presetsService.createPreset({ name: this.newPresetName }).subscribe({
       next: (preset) => {
         this.presets.unshift(preset); // Put it at the top
         this.selectedPresetIds.add(preset.id);
+        this.expandedPresetIds.add(preset.id); // Auto-expand new folders
         this.newPresetName = '';
       },
       error: (err) => console.error('Error creating preset:', err)
@@ -89,6 +107,7 @@ export class DashboardComponent implements OnInit {
       next: () => {
         this.presets = this.presets.filter(p => p.id !== id);
         this.selectedPresetIds.delete(id);
+        this.expandedPresetIds.delete(id);
       },
       error: (err) => console.error('Error deleting preset:', err)
     });
@@ -184,5 +203,49 @@ export class DashboardComponent implements OnInit {
       },
       error: (err) => console.error('Error deleting event:', err)
     });
+  }
+
+  // Calendar Click & Date Range Selection Callbacks
+  onCalendarEventClicked(periodId: string) {
+    for (const preset of this.presets) {
+      const period = (preset.periods || []).find(p => p.id === periodId);
+      if (period) {
+        this.openEditPeriod(period, preset.id);
+        break;
+      }
+    }
+  }
+
+  onCalendarDateRangeSelected(range: {start: Date, end: Date}) {
+    // Select the first expanded folder, or first folder, or let user pick inside the form
+    let defaultPresetId = '';
+    if (this.expandedPresetIds.size > 0) {
+      defaultPresetId = Array.from(this.expandedPresetIds)[0];
+    } else if (this.presets.length > 0) {
+      defaultPresetId = this.presets[0].id;
+    }
+
+    this.activePresetIdForPeriod = defaultPresetId;
+    this.editingPeriodId = null;
+
+    const startStr = this.formatDateToLocalYYYYMMDD(range.start);
+    const endStr = this.formatDateToLocalYYYYMMDD(range.end);
+
+    this.periodFormModel = {
+      name: '',
+      startDate: startStr,
+      endDate: endStr,
+      color: '#3b82f6',
+      noteType: '',
+      noteContent: ''
+    };
+    this.showPeriodForm = true;
+  }
+
+  private formatDateToLocalYYYYMMDD(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

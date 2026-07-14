@@ -176,3 +176,42 @@
       color: #f87171 !important;
     }
 
+    /* Accordion & folder list refinements */
+    .folder-header:hover {
+      background: rgba(255, 255, 255, 0.06) !important;
+    }
+    .nested-event-row {
+      transition: background 0.2s ease;
+    }
+    .nested-event-row:hover {
+      background: rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    /* Interactive Workspace Instruction Banner */
+    .calendar-instruction-banner {
+      animation: bannerSlideIn 0.4s ease;
+    }
+    @keyframes bannerSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Modal Form styling adjustments */
+    .form-label {
+      color: var(--text-secondary);
+    }
+    .modal-overlay {
+      animation: modalFadeIn 0.2s ease;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+

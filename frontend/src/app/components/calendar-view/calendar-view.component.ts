@@ -23,6 +23,7 @@ export class CalendarViewComponent implements OnChanges {
   
   @Output() dateSelected = new EventEmitter<Date>();
   @Output() dateRangeSelected = new EventEmitter<{start: Date, end: Date}>();
+  @Output() eventClicked = new EventEmitter<string>();
 
   viewDate: Date = new Date();
   events: CalendarEvent[] = [];
@@ -65,6 +66,12 @@ export class CalendarViewComponent implements OnChanges {
       const end = this.selectionStart > date ? this.selectionStart : date;
       this.dateRangeSelected.emit({ start, end });
       this.selectionStart = null;
+    }
+  }
+
+  onEventClicked({ event }: { event: CalendarEvent }): void {
+    if (event.id) {
+      this.eventClicked.emit(event.id as string);
     }
   }
 }
