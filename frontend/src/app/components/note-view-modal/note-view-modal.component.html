@@ -1,0 +1,134 @@
+<div *ngIf="period" class="note-view-modal-overlay" (click)="onClose()">
+  <div class="note-view-modal-card card glass-panel" (click)="$event.stopPropagation()" 
+       [style.box-shadow]="'0 20px 50px rgba(0, 0, 0, 0.7), 0 0 35px ' + period.color + '33'"
+       [style.border-color]="period.color + '55'">
+    
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="header-meta">
+        <span class="note-type-badge" 
+              [ngClass]="{
+                'badge-period': (period.noteType || '').toLowerCase() === 'period',
+                'badge-vibe': (period.noteType || '').toLowerCase() === 'vibe',
+                'badge-impression': (period.noteType || '').toLowerCase() === 'impression',
+                'badge-event': (period.noteType || '').toLowerCase() === 'event',
+                'badge-done': (period.noteType || '').toLowerCase() === 'done',
+                'badge-trend': (period.noteType || '').toLowerCase() === 'trend'
+              }">
+          {{ noteTypeIcon }} {{ 'NOTE_TYPES.' + (period.noteType || 'Period').toUpperCase() | translate }}
+        </span>
+        <span *ngIf="presetName" class="folder-badge" [title]="presetName">
+          📁 {{ presetName }}
+        </span>
+      </div>
+      <button class="close-btn" (click)="onClose()" title="Close">✕</button>
+    </div>
+
+    <!-- Note Name -->
+    <h2 class="note-title" [style.border-bottom-color]="period.color + '33'">
+      {{ period.name }}
+    </h2>
+
+    <!-- Dates Information -->
+    <div class="modal-info-section">
+      <div class="date-type-indicator">
+        <span *ngIf="isSingleDate" class="type-pill pill-single">🎯 {{ 'VIEW_MODAL.SINGLE_DATE' | translate }}</span>
+        <span *ngIf="isDateRange" class="type-pill pill-range">📊 {{ 'VIEW_MODAL.DATE_RANGE' | translate }}</span>
+        <span *ngIf="isOngoingRange" class="type-pill pill-ongoing">🔄 {{ 'VIEW_MODAL.ONGOING_RANGE' | translate }}</span>
+      </div>
+      
+      <div class="date-display-box" [style.border-left-color]="period.color">
+        <div class="date-display-text">
+          <ng-container *ngIf="hasTime()">
+            {{ period.startDate | date: 'MMMM d, y, HH:mm' }} 
+            <span *ngIf="isDateRange || isOngoingRange"> &rarr; </span>
+            <span *ngIf="isDateRange">{{ period.endDate | date: 'MMMM d, y, HH:mm' }}</span>
+            <span *ngIf="isOngoingRange" class="ongoing-text">{{ 'CALENDAR.ONGOING' | translate }}</span>
+          </ng-container>
+          <ng-container *ngIf="!hasTime()">
+            {{ period.startDate | date: 'MMMM d, y' }}
+            <span *ngIf="isDateRange || isOngoingRange"> &rarr; </span>
+            <span *ngIf="isDateRange">{{ period.endDate | date: 'MMMM d, y' }}</span>
+            <span *ngIf="isOngoingRange" class="ongoing-text">{{ 'CALENDAR.ONGOING' | translate }}</span>
+          </ng-container>
+        </div>
+        <div *ngIf="isDateRange" class="duration-badge">
+          {{ durationDays }} {{ 'VIEW_MODAL.DURATION_DAYS' | translate }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Mini Impact Timeline -->
+    <div class="modal-timeline-section">
+      <h4 class="section-title">📊 {{ 'VIEW_MODAL.TIMELINE' | translate }} ({{ year }})</h4>
+      
+      <div class="mini-timeline-container">
+        <div class="timeline-track">
+          <!-- Timeline active block highlight -->
+          
+          <!-- Single Date glowing indicator -->
+          <div *ngIf="isSingleDate" 
+               class="timeline-dot-indicator" 
+               [style.left.%]="timelineStartPercent"
+               [style.background-color]="period.color"
+               [style.box-shadow]="'0 0 10px ' + period.color + ', 0 0 20px ' + period.color">
+            <span class="pulse-ring" [style.border-color]="period.color"></span>
+          </div>
+
+          <!-- Date Range solid indicator -->
+          <div *ngIf="isDateRange" 
+               class="timeline-bar-indicator"
+               [style.left.%]="timelineStartPercent"
+               [style.width.%]="timelineWidthPercent"
+               [style.background-color]="period.color">
+          </div>
+
+          <!-- Ongoing gradient indicator -->
+          <div *ngIf="isOngoingRange" 
+               class="timeline-bar-indicator ongoing-gradient"
+               [style.left.%]="timelineStartPercent"
+               [style.width.%]="timelineWidthPercent"
+               [style.background]="'linear-gradient(to right, ' + period.color + ' 0%, ' + period.color + '22 100%)'">
+          </div>
+        </div>
+
+        <div class="timeline-months">
+          <div *ngFor="let month of months" class="month-tick" [style.left.%]="month.leftPercent">
+            <span class="tick-label">{{ month.label }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Description Content -->
+    <div class="modal-description-section">
+      <h4 class="section-title">📝 {{ 'VIEW_MODAL.CONTENT' | translate }}</h4>
+      <div class="description-content" [class.empty]="!period.noteContent">
+        <p *ngIf="period.noteContent">{{ period.noteContent }}</p>
+        <p *ngIf="!period.noteContent" class="no-content-msg">
+          {{ 'VIEW_MODAL.NO_CONTENT' | translate }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Hashtags -->
+    <div *ngIf="period.hashtags?.length" class="modal-tags-section">
+      <div class="tags-list">
+        <span *ngFor="let tag of period.hashtags" class="view-tag-chip">
+          #{{ tag }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Actions / Footer -->
+    <div class="modal-actions">
+      <button *ngIf="isEditable" class="btn-primary edit-action-btn" (click)="onEdit()">
+        {{ 'VIEW_MODAL.EDIT_NOTE' | translate }}
+      </button>
+      <button class="btn-outline close-action-btn" (click)="onClose()">
+        {{ 'VIEW_MODAL.CLOSE' | translate }}
+      </button>
+    </div>
+
+  </div>
+</div>
