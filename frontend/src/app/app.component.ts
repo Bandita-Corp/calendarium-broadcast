@@ -63,7 +63,8 @@ import { MacroService } from '@/services/macro.service';
 
         <div class="nav-user">
           @if (currentUser) {
-            @if (isAdmin) {
+            <!-- Admin menu item hidden by user request -->
+            @if (false) {
               <a routerLink="/admin" routerLinkActive="active" class="nav-link admin-link">
                 ⚡ {{ 'NAV.ADMIN' | translate }}
               </a>

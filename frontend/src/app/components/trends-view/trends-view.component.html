@@ -1,0 +1,163 @@
+<div class="trends-view-container">
+  <!-- Top Summary Cards -->
+  <div class="summary-cards-grid">
+    <div class="summary-card glass-panel">
+      <div class="summary-icon">🔥</div>
+      <div class="summary-details">
+        <span class="summary-label">Longest Active Streak</span>
+        <span class="summary-value" *ngIf="topStreakVal > 0">#{{ topStreakTag }} ({{ topStreakVal }} days)</span>
+        <span class="summary-value empty" *ngIf="topStreakVal === 0">No active streaks</span>
+      </div>
+    </div>
+    
+    <div class="summary-card glass-panel">
+      <div class="summary-icon">📈</div>
+      <div class="summary-details">
+        <span class="summary-label">Active Streaks</span>
+        <span class="summary-value">{{ totalActiveCount }} / {{ totalTagsCount }} trends</span>
+      </div>
+    </div>
+    
+    <div class="summary-card glass-panel">
+      <div class="summary-icon">✅</div>
+      <div class="summary-details">
+        <span class="summary-label">Streaks Logged Today</span>
+        <span class="summary-value">{{ loggedTodayCount }} completed</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & Sorting Controls -->
+  <div class="controls-bar card glass-panel">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Search hashtags..." class="filter-input" />
+    </div>
+    
+    <div class="sort-box">
+      <label class="sort-label">Sort by:</label>
+      <select [(ngModel)]="sortBy" (change)="sortStreaks()" class="sort-select">
+        <option value="currentStreak">Current Streak</option>
+        <option value="longestStreak">Longest Streak</option>
+        <option value="totalLogs">Total Logs</option>
+        <option value="name">Name</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Main Split Layout: Trends Grid and Detail Panel -->
+  <div class="trends-layout-grid" [class.has-selection]="selectedTagStats !== null">
+    <!-- Grid of Habit/Trend Cards -->
+    <div class="trends-list-container">
+      <div class="trends-grid">
+        @for (streak of filteredStreaks; track streak.tag) {
+          <div class="streak-card glass-panel" 
+               [class.active-selection]="selectedTagStats?.tag === streak.tag"
+               [style.border-left-color]="streak.color"
+               (click)="selectTag(streak)">
+            
+            <div class="card-header">
+              <span class="tag-title">#{{ streak.tag }}</span>
+              
+              <!-- Quick Action Macro Button -->
+              <button *ngIf="!streak.isActiveToday" 
+                      class="btn-log-streak" 
+                      [style.background-color]="streak.color" 
+                      (click)="onLogTodayClick(streak.tag, $event)"
+                      title="Log this streak for today">
+                ⚡ Log Today
+              </button>
+              
+              <span *ngIf="streak.isActiveToday" class="badge-logged">
+                ✅ Logged
+              </span>
+            </div>
+
+            <div class="card-stats">
+              <div class="stat-item">
+                <span class="stat-num glow-text" *ngIf="streak.currentStreak > 0">{{ streak.currentStreak }} 🔥</span>
+                <span class="stat-num empty" *ngIf="streak.currentStreak === 0">0</span>
+                <span class="stat-name">Current Streak</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-num">{{ streak.longestStreak }} 🏆</span>
+                <span class="stat-name">Longest Streak</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-num">{{ streak.totalLogs }} 📅</span>
+                <span class="stat-name">Total Logs</span>
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <span *ngIf="streak.isActiveToday" class="status-msg active-today">
+                Active today! Streak is safe.
+              </span>
+              <span *ngIf="streak.isActiveYesterday && !streak.isActiveToday" class="status-msg needs-log">
+                ⚠️ Log today to keep streak alive!
+              </span>
+              <span *ngIf="!streak.isActiveToday && !streak.isActiveYesterday" class="status-msg inactive">
+                No active streak. Log today to start!
+              </span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div *ngIf="filteredStreaks.length === 0" class="empty-state card glass-panel">
+        <p>No hashtags matching your filters were found.</p>
+        <p class="subtext">Add hashtags like #fitness or #meditation when creating notes to see them here.</p>
+      </div>
+    </div>
+
+    <!-- Right Side Detail / History Panel -->
+    <div class="detail-panel card glass-panel" *ngIf="selectedTagStats">
+      <div class="detail-header">
+        <h3 class="detail-title">
+          <span>#{{ selectedTagStats.tag }}</span>
+          <span class="detail-color-dot" [style.background-color]="selectedTagStats.color"></span>
+        </h3>
+        <button class="btn-close-detail" (click)="selectedTagStats = null">✕</button>
+      </div>
+
+      <!-- Quick Summary inside panel -->
+      <div class="detail-summary-row">
+        <div class="summary-mini-stat">
+          <span class="lbl">Current Streak</span>
+          <span class="val">{{ selectedTagStats.currentStreak }} days</span>
+        </div>
+        <div class="summary-mini-stat">
+          <span class="lbl">Max Record</span>
+          <span class="val">{{ selectedTagStats.longestStreak }} days</span>
+        </div>
+        <div class="summary-mini-stat">
+          <span class="lbl">Total Active Days</span>
+          <span class="val">{{ selectedTagStats.totalLogs }} days</span>
+        </div>
+      </div>
+
+      <!-- History List -->
+      <h4 class="history-list-title">Logged Entries Log</h4>
+      <div class="history-timeline">
+        @for (period of selectedTagStats.periods; track period.id) {
+          <div class="timeline-card" [style.border-left-color]="period.color">
+            <div class="timeline-card-header">
+              <span class="timeline-period-name">{{ period.name || 'Unnamed Entry' }}</span>
+              <span class="timeline-folder-tag">📁 {{ getFolderForPeriod(period) }}</span>
+            </div>
+            
+            <div class="timeline-date">
+              📅 {{ period.startDate | date: 'mediumDate' }}
+              <span *ngIf="period.endDate"> – {{ period.endDate | date: 'mediumDate' }}</span>
+              <span *ngIf="!period.endDate && period.noteType?.toLowerCase() !== 'done'"> – Ongoing</span>
+            </div>
+
+            <p class="timeline-content" *ngIf="period.noteContent">
+              {{ period.noteContent }}
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

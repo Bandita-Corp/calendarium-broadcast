@@ -9,6 +9,7 @@ import { CalendarViewComponent } from '@/components/calendar-view/calendar-view.
 import { TimelineBarComponent } from '@/components/timeline-bar/timeline-bar.component';
 import { DatePickerComponent } from '@/components/date-picker/date-picker.component';
 import { NoteViewModalComponent } from '@/components/note-view-modal/note-view-modal.component';
+import { TrendsViewComponent } from '@/components/trends-view/trends-view.component';
 import { Preset, Period } from '@/models';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
@@ -24,7 +25,8 @@ import { MacroService } from '@/services/macro.service';
     CalendarViewComponent,
     TimelineBarComponent,
     DatePickerComponent,
-    NoteViewModalComponent
+    NoteViewModalComponent,
+    TrendsViewComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
@@ -44,7 +46,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private macroSub?: Subscription;
   currentMode: 'live' | 'edit' = 'live';
   currentYear = new Date().getFullYear();
-  viewSubMode: 'timeline' | 'calendar' = 'timeline';
+  viewSubMode: 'timeline' | 'calendar' | 'trends' = 'timeline';
   dropdownOpen = false;
   selectedDate: Date | null = null;
 
@@ -146,6 +148,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     } else if (url.includes('/dashboard/live/calendar')) {
       this.currentMode = 'live';
       this.viewSubMode = 'calendar';
+    } else if (url.includes('/dashboard/live/trends')) {
+      this.currentMode = 'live';
+      this.viewSubMode = 'trends';
     }
   }
 
@@ -174,7 +179,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.showPeriodForm = false;
   }
 
-  setSubMode(subMode: 'timeline' | 'calendar') {
+  setSubMode(subMode: 'timeline' | 'calendar' | 'trends') {
     this.router.navigate([`/dashboard/live/${subMode}`]);
   }
 
@@ -280,6 +285,45 @@ export class DashboardComponent implements OnInit, OnDestroy {
       
       return today >= start && (!end || today <= end);
     });
+  }
+
+  openPeriodFormForStreak(tag: string) {
+    const today = new Date();
+    const startDateStr = this.formatDateToLocalYYYYMMDD(today);
+    
+    // Find color from last period with this tag, or use a default
+    const matchingPeriods = this.displayedPeriods.filter(p => 
+      (p.hashtags || []).some(t => t.toLowerCase() === tag.toLowerCase())
+    );
+    const color = matchingPeriods.length > 0 ? matchingPeriods[0].color : '#54a0ff';
+    
+    let defaultPresetId = '';
+    if (this.expandedPresetIds.size > 0) {
+      defaultPresetId = Array.from(this.expandedPresetIds)[0];
+    } else if (this.presets.length > 0) {
+      defaultPresetId = this.presets[0].id;
+    }
+    
+    this.activePresetIdForPeriod = defaultPresetId;
+    this.editingPeriodId = null;
+    this.periodFormModel = {
+      name: `Logged #${tag}`,
+      startDate: startDateStr,
+      endDate: '',
+      color: color,
+      noteType: 'Trend',
+      noteContent: '',
+      hashtags: [tag],
+      hasTime: false,
+      startTime: '09:00',
+      endTime: '10:00',
+      isSingleNote: true
+    };
+    this.newHashtagText = '';
+    this.showPeriodForm = true;
+    
+    // Switch to edit mode so the form is visible
+    this.setMode('edit');
   }
 
   // Period / Date editing functions

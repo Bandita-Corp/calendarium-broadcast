@@ -1,22 +1,25 @@
-<div class="page dashboard-page">
-  <div class="header-section" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
-    <div>
-      <h1 style="margin: 0; font-size: 2.2rem; font-weight: 700; background: linear-gradient(135deg, var(--text-color) 0%, var(--primary-color) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-        {{ 'NAV.DASHBOARD' | translate }}
-      </h1>
-      <p class="subtitle" style="margin: 0.25rem 0 0; opacity: 0.7;">
+<div class="page dashboard-page" [class.mode-live]="currentMode === 'live'" [class.mode-edit]="currentMode === 'edit'">
+  <div class="header-section">
+    <div class="header-title-container">
+      <div class="title-with-badge">
+        <h1 class="dashboard-title">
+          {{ 'NAV.DASHBOARD' | translate }}
+        </h1>
+        <span class="mode-badge" [class.badge-live]="currentMode === 'live'" [class.badge-edit]="currentMode === 'edit'">
+          {{ currentMode === 'live' ? '👁️ Live' : '✏️ Edit' }}
+        </span>
+      </div>
+      <p class="subtitle">
         {{ 'AUTH.WELCOME_BACK' | translate }}, {{ authService.currentUser?.name || authService.currentUser?.email }}!
       </p>
     </div>
 
     <!-- Toggle Mode Selector -->
-    <div class="mode-toggle-container" style="display: flex; background: rgba(255,255,255,0.05); padding: 0.3rem; border-radius: 30px; border: 1px solid var(--border-color); backdrop-filter: blur(10px);">
-      <button class="mode-btn" [class.active]="currentMode === 'live'" (click)="setMode('live')"
-              style="padding: 0.6rem 1.2rem; border-radius: 20px; border: none; background: transparent; color: var(--text-color); cursor: pointer; transition: all 0.3s ease; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+    <div class="mode-toggle-container" [class.mode-live]="currentMode === 'live'" [class.mode-edit]="currentMode === 'edit'">
+      <button class="mode-btn live-btn" [class.active]="currentMode === 'live'" (click)="setMode('live')">
         👁️ Live Mode
       </button>
-      <button class="mode-btn" [class.active]="currentMode === 'edit'" (click)="setMode('edit')"
-              style="padding: 0.6rem 1.2rem; border-radius: 20px; border: none; background: transparent; color: var(--text-color); cursor: pointer; transition: all 0.3s ease; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+      <button class="mode-btn edit-btn" [class.active]="currentMode === 'edit'" (click)="setMode('edit')">
         ✏️ Edit Mode
       </button>
     </div>
@@ -172,7 +175,7 @@
           {{ 'BOARD.YEAR_AT_A_GLANCE' | translate }}
         </h2>
         
-        <!-- View Toggle (Timeline vs Calendar) -->
+        <!-- View Toggle (Timeline vs Calendar vs Trends) -->
         <div class="view-toggle">
           <button class="view-toggle-btn" [class.active]="viewSubMode === 'timeline'" (click)="setSubMode('timeline')">
             📊 Timeline
@@ -180,16 +183,22 @@
           <button class="view-toggle-btn" [class.active]="viewSubMode === 'calendar'" (click)="setSubMode('calendar')">
             📅 Calendar
           </button>
+          <button class="view-toggle-btn" [class.active]="viewSubMode === 'trends'" (click)="setSubMode('trends')">
+            📈 Trends & Streaks
+          </button>
         </div>
       </div>
 
-      <div class="card glass-panel calendar-card" style="min-height: auto; padding: 1.5rem; display: flex; flex-direction: column;">
+      <div *ngIf="viewSubMode !== 'trends'" class="card glass-panel calendar-card" style="min-height: auto; padding: 1.5rem; display: flex; flex-direction: column;">
         <!-- Timeline View -->
         <app-timeline-bar *ngIf="viewSubMode === 'timeline'" [periods]="displayedPeriods" [year]="currentYear" style="width: 100%;"></app-timeline-bar>
 
         <!-- Calendar View -->
         <app-calendar-view *ngIf="viewSubMode === 'calendar'" [periods]="displayedPeriods" [presets]="presets" [isEditable]="true" [year]="currentYear" (dateSelected)="onCalendarDateSelected($event)" (eventClicked)="onCalendarEventClicked($event)" (addClicked)="onCalendarAddClicked($event)" style="width: 100%;"></app-calendar-view>
       </div>
+
+      <!-- Trends & Streaks View -->
+      <app-trends-view *ngIf="viewSubMode === 'trends'" [periods]="displayedPeriods" [presets]="presets" (logStreak)="openPeriodFormForStreak($event)"></app-trends-view>
 
       <!-- Calendar Active Notes Feed (Live Mode) -->
       <div *ngIf="viewSubMode === 'calendar'" class="card glass-panel feed-card" style="margin-top: 1.5rem; padding: 1.5rem;">
