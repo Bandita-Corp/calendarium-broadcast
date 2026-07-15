@@ -2,7 +2,9 @@
   "NAV": {
     "HOME": "Home",
     "DASHBOARD": "Dashboard",
-    "ADMIN": "Admin"
+    "ADMIN": "Admin",
+    "CALENDAR": "Calendar",
+    "TIMELINE": "Timeline"
   },
   "AUTH": {
     "LOGIN": "Login",
@@ -26,7 +28,8 @@
     "SHOW_ON_CALENDAR": "Show on calendar"
   },
   "CALENDAR": {
-    "TODAY": "Today"
+    "TODAY": "Today",
+    "ONGOING": "Ongoing"
   },
   "EVENT_MODAL": {
     "EDIT_TITLE": "✏️ Edit Note",
@@ -43,6 +46,8 @@
     "TYPE_VIBE": "Vibe",
     "TYPE_IMPRESSION": "Impression",
     "TYPE_EVENT": "Event (it happens in the world)",
+    "TYPE_DONE": "Done (what was done in this period)",
+    "TYPE_TREND": "Trend (patterns or directions)",
     "HASHTAGS": "Hashtags",
     "HASHTAG_PLACEHOLDER": "Type a tag (e.g. happy) and press Enter",
     "NOTE_CONTENT": "Note Content / Details",
@@ -50,11 +55,41 @@
     "CANCEL": "Cancel",
     "SAVE": "Save Note",
     "SELECT_START_DATE": "Select Start Date",
-    "SELECT_END_DATE": "Select End Date"
+    "SELECT_END_DATE": "Select End Date",
+    "ADD_TIME": "Specify exact times",
+    "START_TIME": "Start Time",
+    "END_TIME": "End Time"
   },
   "CALENDAR_POPUP": {
     "TITLE": "Notes Active on",
     "NO_NOTES": "No active notes found for this date.",
-    "EDIT": "✏️ Edit"
+    "EDIT": "✏️ Edit",
+    "VIEW": "👁️ View",
+    "ADD": "Add Note",
+    "DELETE": "🗑️ Delete",
+    "RESET_TODAY": "Reset to Today",
+    "GLOBAL": "Global"
+  },
+  "NOTE_TYPES": {
+    "PERIOD": "Period",
+    "VIBE": "Vibe",
+    "IMPRESSION": "Impression",
+    "EVENT": "Event",
+    "DONE": "Done",
+    "TREND": "Trend"
+  },
+  "VIEW_MODAL": {
+    "TITLE": "Note Details",
+    "EDIT_NOTE": "✏️ Edit Note",
+    "CLOSE": "Close",
+    "SINGLE_DATE": "Single Date",
+    "DATE_RANGE": "Date Range",
+    "ONGOING_RANGE": "Ongoing (No End Date)",
+    "FOLDER": "Folder",
+    "NOTE_TYPE": "Note Type",
+    "CONTENT": "Details",
+    "TIMELINE": "Impact Timeline",
+    "NO_CONTENT": "No description details provided for this note.",
+    "DURATION_DAYS": "days"
   }
 }

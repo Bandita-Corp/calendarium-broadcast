@@ -12,13 +12,16 @@
     </div>
     <div class="period-dates">
       <span class="date-range">
-        {{ period.startDate | date: 'MMM d, y' }}
-        &rarr;
-        {{ period.endDate | date: 'MMM d, y' }}
+        <ng-container *ngIf="hasTime(period)">
+          {{ period.startDate | date: 'MMM d, y, HH:mm' }} &rarr; {{ period.endDate | date: 'MMM d, y, HH:mm' }}
+        </ng-container>
+        <ng-container *ngIf="!hasTime(period)">
+          {{ period.startDate | date: 'MMM d, y' }} &rarr; {{ period.endDate ? (period.endDate | date: 'MMM d, y') : ('CALENDAR.ONGOING' | translate) }}
+        </ng-container>
       </span>
     </div>
     <div class="period-duration">
-      {{ getDuration(period) }} days
+      {{ getDuration(period) }}{{ period.endDate ? ' days' : '' }}
     </div>
   </div>
 </div>

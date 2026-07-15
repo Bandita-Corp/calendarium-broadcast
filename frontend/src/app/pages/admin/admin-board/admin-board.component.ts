@@ -98,6 +98,8 @@ export class AdminBoardComponent implements OnInit {
 
   isPeriodActive(period: Period): boolean {
     const now = new Date();
-    return new Date(period.startDate) <= now && new Date(period.endDate) >= now;
+    const start = new Date(period.startDate);
+    const end = period.endDate ? new Date(period.endDate) : null;
+    return start <= now && (!end || end >= now);
   }
 }

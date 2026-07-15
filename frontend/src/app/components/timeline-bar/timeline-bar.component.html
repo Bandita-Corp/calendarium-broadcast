@@ -28,7 +28,7 @@
         [style.width.%]="block.widthPercent"
         [style.top.px]="block.row * 44 + 8"
         [style.background-color]="block.period.color"
-        [title]="block.period.name + ' (' + formatDate(block.period.startDate) + ' – ' + formatDate(block.period.endDate) + ')'"
+        [title]="block.period.name + ' (' + formatDate(block.period.startDate) + ' – ' + (block.period.endDate ? formatDate(block.period.endDate) : ('CALENDAR.ONGOING' | translate)) + ')'"
       >
         <span class="block-label">{{ block.period.name }}</span>
       </div>

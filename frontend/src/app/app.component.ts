@@ -23,24 +23,26 @@ import { LangSwitcherComponent } from '@/components/lang-switcher/lang-switcher.
         <div class="nav-links">
           <app-lang-switcher></app-lang-switcher>
 
-          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
-            {{ 'NAV.HOME' | translate }}
-          </a>
-
           @if (currentUser) {
-            <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
+            <a routerLink="/dashboard/work" routerLinkActive="active" class="nav-link">
               {{ 'NAV.DASHBOARD' | translate }}
             </a>
-            @if (isAdmin) {
-              <a routerLink="/admin" routerLinkActive="active" class="nav-link admin-link">
-                ⚡ {{ 'NAV.ADMIN' | translate }}
-              </a>
-            }
+            <a routerLink="/dashboard/live/calendar" routerLinkActive="active" class="nav-link">
+              {{ 'NAV.CALENDAR' | translate }}
+            </a>
+            <a routerLink="/dashboard/live/timeline" routerLinkActive="active" class="nav-link">
+              {{ 'NAV.TIMELINE' | translate }}
+            </a>
           }
         </div>
 
         <div class="nav-user">
           @if (currentUser) {
+            @if (isAdmin) {
+              <a routerLink="/admin" routerLinkActive="active" class="nav-link admin-link">
+                ⚡ {{ 'NAV.ADMIN' | translate }}
+              </a>
+            }
             <div class="user-menu">
               <div class="user-avatar" [title]="currentUser.email">
                 {{ getInitial(currentUser) }}

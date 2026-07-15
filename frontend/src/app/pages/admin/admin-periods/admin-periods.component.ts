@@ -4,11 +4,12 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PeriodsService } from '@/services/periods.service';
 import { PresetsService } from '@/services/presets.service';
 import { Period, Preset } from '@/models';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-admin-periods',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslateModule],
   templateUrl: './admin-periods.component.html',
   styleUrl: './admin-periods.component.css',
 })
@@ -28,7 +29,7 @@ export class AdminPeriodsComponent implements OnInit {
   periodForm = this.fb.group({
     name: ['', Validators.required],
     startDate: ['', Validators.required],
-    endDate: ['', Validators.required],
+    endDate: [''],
     color: ['#FFD700'],
     presetId: [''],
     noteType: ['Period'],
@@ -71,7 +72,7 @@ export class AdminPeriodsComponent implements OnInit {
     this.periodForm.patchValue({
       name: period.name,
       startDate: period.startDate.split('T')[0],
-      endDate: period.endDate.split('T')[0],
+      endDate: period.endDate ? period.endDate.split('T')[0] : '',
       color: period.color,
       presetId: period.presetId || '',
       noteType: period.noteType || 'Period',
@@ -102,7 +103,7 @@ export class AdminPeriodsComponent implements OnInit {
     const payload = {
       name: this.periodForm.value.name!,
       startDate: this.periodForm.value.startDate!,
-      endDate: this.periodForm.value.endDate!,
+      endDate: this.periodForm.value.endDate || null,
       color: this.periodForm.value.color!,
       presetId: this.periodForm.value.presetId || null,
       noteType: this.periodForm.value.noteType || null,
@@ -135,7 +136,8 @@ export class AdminPeriodsComponent implements OnInit {
     });
   }
 
-  getDuration(period: Period): number {
+  getDuration(period: Period): number | string {
+    if (!period.endDate) return '-';
     return Math.ceil(
       (new Date(period.endDate).getTime() - new Date(period.startDate).getTime()) /
         (1000 * 60 * 60 * 24),
@@ -144,7 +146,9 @@ export class AdminPeriodsComponent implements OnInit {
 
   isPeriodActive(period: Period): boolean {
     const now = new Date();
-    return new Date(period.startDate) <= now && new Date(period.endDate) >= now;
+    const start = new Date(period.startDate);
+    const end = period.endDate ? new Date(period.endDate) : null;
+    return start <= now && (!end || end >= now);
   }
 
   isFuture(period: Period): boolean {

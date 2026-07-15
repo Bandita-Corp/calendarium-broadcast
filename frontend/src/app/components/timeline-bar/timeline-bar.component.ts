@@ -68,7 +68,9 @@ export class TimelineBarComponent implements OnChanges {
 
     this.blocks = this.periods.map((period) => {
       const start = Math.max(new Date(period.startDate).getTime(), yearStart);
-      const end = Math.min(new Date(period.endDate).getTime(), yearEnd);
+      const end = period.endDate
+        ? Math.min(new Date(period.endDate).getTime(), yearEnd)
+        : yearEnd;
 
       const leftPercent = ((start - yearStart) / yearMs) * 100;
       const widthPercent = ((end - start) / yearMs) * 100;

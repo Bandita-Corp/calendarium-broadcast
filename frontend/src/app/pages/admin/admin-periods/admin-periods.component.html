@@ -158,8 +158,8 @@
                     }
                   </td>
                   <td>{{ period.startDate | date: 'MMM d, y' }}</td>
-                  <td>{{ period.endDate | date: 'MMM d, y' }}</td>
-                  <td>{{ getDuration(period) }}d</td>
+                  <td>{{ period.endDate ? (period.endDate | date: 'MMM d, y') : ('CALENDAR.ONGOING' | translate) }}</td>
+                  <td>{{ getDuration(period) }}{{ period.endDate ? 'd' : '' }}</td>
                   <td>
                     @if (isPeriodActive(period)) {
                       <span class="status-badge active">Active</span>

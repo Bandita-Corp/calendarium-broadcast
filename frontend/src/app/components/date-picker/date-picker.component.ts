@@ -120,6 +120,12 @@ export class DatePickerComponent implements OnChanges {
     this.isOpen = false;
   }
 
+  clearValue(event: MouseEvent) {
+    event.stopPropagation();
+    this.value = '';
+    this.valueChange.emit('');
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;

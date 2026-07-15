@@ -6,8 +6,10 @@
       readonly
       class="form-input cursor-pointer"
       [placeholder]="placeholder"
+      style="padding-right: 3.2rem;"
     />
-    <span class="calendar-icon">📅</span>
+    <span *ngIf="value" class="clear-icon" (click)="clearValue($event)">✖</span>
+    <span class="calendar-icon" [style.right]="value ? '1.85rem' : '0.85rem'">📅</span>
   </div>
 
   <div class="datepicker-dropdown glass-panel" *ngIf="isOpen" [class.align-right]="align === 'right'">

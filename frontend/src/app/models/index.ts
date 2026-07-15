@@ -11,7 +11,7 @@ export interface Period {
   name: string;
   color: string;
   startDate: string;
-  endDate: string;
+  endDate?: string | null;
   userId: string;
   presetId?: string;
   noteType?: string;

@@ -4,11 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '@/services/auth.service';
 import { PresetsService } from '@/services/presets.service';
 import { PeriodsService } from '@/services/periods.service';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CalendarViewComponent } from '@/components/calendar-view/calendar-view.component';
 import { TimelineBarComponent } from '@/components/timeline-bar/timeline-bar.component';
 import { DatePickerComponent } from '@/components/date-picker/date-picker.component';
+import { NoteViewModalComponent } from '@/components/note-view-modal/note-view-modal.component';
 import { Preset, Period } from '@/models';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
@@ -19,7 +22,8 @@ import { Preset, Period } from '@/models';
     TranslateModule,
     CalendarViewComponent,
     TimelineBarComponent,
-    DatePickerComponent
+    DatePickerComponent,
+    NoteViewModalComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
@@ -28,6 +32,8 @@ export class DashboardComponent implements OnInit {
   authService = inject(AuthService);
   presetsService = inject(PresetsService);
   periodsService = inject(PeriodsService);
+  translate = inject(TranslateService);
+  private router = inject(Router);
 
   presets: Preset[] = [];
   selectedPresetIds = new Set<string>();
@@ -38,6 +44,10 @@ export class DashboardComponent implements OnInit {
   viewSubMode: 'timeline' | 'calendar' = 'timeline';
   dropdownOpen = false;
   selectedDate: Date | null = null;
+
+  // View Modal fields
+  showViewModal = false;
+  viewModalPeriod: Period | null = null;
 
   // Period Form fields
   showPeriodForm = false;
@@ -52,11 +62,33 @@ export class DashboardComponent implements OnInit {
     color: '#3b82f6',
     noteType: 'Period',
     noteContent: '',
-    hashtags: [] as string[]
+    hashtags: [] as string[],
+    hasTime: false,
+    startTime: '09:00',
+    endTime: '10:00'
   };
 
   ngOnInit() {
     this.loadPresetsAndSelectAll(true);
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.updateModeFromUrl();
+    });
+    this.updateModeFromUrl();
+  }
+
+  updateModeFromUrl() {
+    const url = this.router.url;
+    if (url.includes('/dashboard/work')) {
+      this.currentMode = 'edit';
+    } else if (url.includes('/dashboard/live/timeline')) {
+      this.currentMode = 'live';
+      this.viewSubMode = 'timeline';
+    } else if (url.includes('/dashboard/live/calendar')) {
+      this.currentMode = 'live';
+      this.viewSubMode = 'calendar';
+    }
   }
 
   loadPresetsAndSelectAll(selectAll = false) {
@@ -76,8 +108,16 @@ export class DashboardComponent implements OnInit {
   }
 
   setMode(mode: 'live' | 'edit') {
-    this.currentMode = mode;
+    if (mode === 'edit') {
+      this.router.navigate(['/dashboard/work']);
+    } else {
+      this.router.navigate([`/dashboard/live/${this.viewSubMode}`]);
+    }
     this.showPeriodForm = false;
+  }
+
+  setSubMode(subMode: 'timeline' | 'calendar') {
+    this.router.navigate([`/dashboard/live/${subMode}`]);
   }
 
   isSelected(id: string): boolean {
@@ -175,15 +215,21 @@ export class DashboardComponent implements OnInit {
     return this.displayedPeriods.filter(p => {
       const start = new Date(p.startDate);
       start.setHours(0, 0, 0, 0);
-      const end = new Date(p.endDate);
-      end.setHours(23, 59, 59, 999);
+      const end = p.endDate ? new Date(p.endDate) : null;
+      if (end) {
+        end.setHours(23, 59, 59, 999);
+      }
       
-      return today >= start && today <= end;
+      return today >= start && (!end || today <= end);
     });
   }
 
   // Period / Date editing functions
   openAddPeriodFromCalendar() {
+    this.openAddPeriodForDate(new Date());
+  }
+
+  openAddPeriodForDate(date: Date) {
     let defaultPresetId = '';
     if (this.expandedPresetIds.size > 0) {
       defaultPresetId = Array.from(this.expandedPresetIds)[0];
@@ -191,18 +237,21 @@ export class DashboardComponent implements OnInit {
       defaultPresetId = this.presets[0].id;
     }
 
-    const todayStr = this.formatDateToLocalYYYYMMDD(new Date());
+    const dateStr = this.formatDateToLocalYYYYMMDD(date);
 
     this.activePresetIdForPeriod = defaultPresetId;
     this.editingPeriodId = null;
     this.periodFormModel = {
       name: '',
-      startDate: todayStr,
-      endDate: todayStr,
+      startDate: dateStr,
+      endDate: '',
       color: '#3b82f6',
       noteType: 'Period',
       noteContent: '',
-      hashtags: []
+      hashtags: [],
+      hasTime: false,
+      startTime: '09:00',
+      endTime: '10:00'
     };
     this.newHashtagText = '';
     this.showPeriodForm = true;
@@ -218,7 +267,10 @@ export class DashboardComponent implements OnInit {
       color: '#3b82f6',
       noteType: 'Period',
       noteContent: '',
-      hashtags: []
+      hashtags: [],
+      hasTime: false,
+      startTime: '09:00',
+      endTime: '10:00'
     };
     this.newHashtagText = '';
     this.showPeriodForm = true;
@@ -227,14 +279,27 @@ export class DashboardComponent implements OnInit {
   openEditPeriod(period: Period, presetId: string) {
     this.activePresetIdForPeriod = presetId;
     this.editingPeriodId = period.id;
+    
+    const start = new Date(period.startDate);
+    const end = period.endDate ? new Date(period.endDate) : null;
+    const hasTime = end ? !(
+      (start.getHours() === 0 && start.getMinutes() === 0) &&
+      ((end.getHours() === 23 && end.getMinutes() === 59) || (end.getHours() === 0 && end.getMinutes() === 0))
+    ) : false;
+    const startTimeStr = this.formatTime(start);
+    const endTimeStr = end ? this.formatTime(end) : '10:00';
+
     this.periodFormModel = {
       name: period.name,
-      startDate: period.startDate.split('T')[0],
-      endDate: period.endDate.split('T')[0],
+      startDate: this.formatDateToLocalYYYYMMDD(start),
+      endDate: end ? this.formatDateToLocalYYYYMMDD(end) : '',
       color: period.color || '#3b82f6',
       noteType: period.noteType || 'Period',
       noteContent: period.noteContent || '',
-      hashtags: period.hashtags ? [...period.hashtags] : []
+      hashtags: period.hashtags ? [...period.hashtags] : [],
+      hasTime: hasTime,
+      startTime: hasTime ? startTimeStr : '09:00',
+      endTime: hasTime ? endTimeStr : '10:00'
     };
     this.newHashtagText = '';
     this.showPeriodForm = true;
@@ -242,12 +307,32 @@ export class DashboardComponent implements OnInit {
 
   savePeriod() {
     const model = this.periodFormModel;
-    if (!model.name || !model.startDate || !model.endDate) return;
+    if (!model.name || !model.startDate) return;
+
+    let startDateISO: string;
+    let endDateISO: string | null = null;
+
+    if (model.endDate) {
+      if (model.hasTime) {
+        startDateISO = this.parseDateAndTime(model.startDate, model.startTime || '09:00');
+        endDateISO = this.parseDateAndTime(model.endDate, model.endTime || '10:00');
+      } else {
+        startDateISO = this.parseDateOnly(model.startDate, false);
+        endDateISO = this.parseDateOnly(model.endDate, true);
+      }
+    } else {
+      if (model.hasTime) {
+        startDateISO = this.parseDateAndTime(model.startDate, model.startTime || '09:00');
+      } else {
+        startDateISO = this.parseDateOnly(model.startDate, false);
+      }
+      endDateISO = null;
+    }
 
     const payload = {
       name: model.name,
-      startDate: model.startDate,
-      endDate: model.endDate,
+      startDate: startDateISO,
+      endDate: endDateISO,
       color: model.color,
       presetId: this.activePresetIdForPeriod || null,
       noteType: model.noteType || null,
@@ -290,10 +375,35 @@ export class DashboardComponent implements OnInit {
       const period = (preset.periods || []).find(p => p.id === periodId);
       if (period) {
         this.selectedDate = new Date(period.startDate);
+        this.openViewPeriod(period);
+        break;
+      }
+    }
+  }
+
+  openViewPeriod(period: Period) {
+    this.viewModalPeriod = period;
+    this.showViewModal = true;
+  }
+
+  closeViewPeriod() {
+    this.showViewModal = false;
+    this.viewModalPeriod = null;
+  }
+
+  handleViewModalEdit(periodId: string) {
+    this.closeViewPeriod();
+    for (const preset of this.presets) {
+      const period = (preset.periods || []).find(p => p.id === periodId);
+      if (period) {
         this.openEditPeriod(period, preset.id);
         break;
       }
     }
+  }
+
+  onCalendarAddClicked(date: Date) {
+    this.openAddPeriodForDate(date);
   }
 
   onCalendarDateSelected(date: Date) {
@@ -302,7 +412,9 @@ export class DashboardComponent implements OnInit {
 
   getSelectedDateLabel(): string {
     const date = this.selectedDate || new Date();
-    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    const lang = this.translate.currentLang || this.translate.defaultLang || 'en';
+    const locale = lang === 'ru' ? 'ru-RU' : 'en-US';
+    return date.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
   }
 
   clearSelectedDate() {
@@ -321,6 +433,8 @@ export class DashboardComponent implements OnInit {
       case 'vibe': return '✨';
       case 'impression': return '💭';
       case 'event': return '🎈';
+      case 'done': return '✅';
+      case 'trend': return '📈';
       default: return '📝';
     }
   }
@@ -338,15 +452,16 @@ export class DashboardComponent implements OnInit {
     return this.displayedPeriods.filter(p => {
       const start = new Date(p.startDate);
       start.setHours(0, 0, 0, 0);
-      const end = new Date(p.endDate);
-      end.setHours(23, 59, 59, 999);
+      const end = p.endDate ? new Date(p.endDate) : null;
+      if (end) {
+        end.setHours(23, 59, 59, 999);
+      }
       
-      return target >= start && target <= end;
+      return target >= start && (!end || target <= end);
     });
   }
 
   onCalendarDateRangeSelected(range: {start: Date, end: Date}) {
-    // Select the first expanded folder, or first folder, or let user pick inside the form
     let defaultPresetId = '';
     if (this.expandedPresetIds.size > 0) {
       defaultPresetId = Array.from(this.expandedPresetIds)[0];
@@ -367,7 +482,10 @@ export class DashboardComponent implements OnInit {
       color: '#3b82f6',
       noteType: 'Period',
       noteContent: '',
-      hashtags: []
+      hashtags: [],
+      hasTime: false,
+      startTime: '09:00',
+      endTime: '10:00'
     };
     this.newHashtagText = '';
     this.showPeriodForm = true;
@@ -397,6 +515,40 @@ export class DashboardComponent implements OnInit {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  hasTime(period: Period): boolean {
+    if (!period || !period.startDate || !period.endDate) return false;
+    const start = new Date(period.startDate);
+    const end = new Date(period.endDate);
+    return !(
+      (start.getHours() === 0 && start.getMinutes() === 0) &&
+      ((end.getHours() === 23 && end.getMinutes() === 59) || (end.getHours() === 0 && end.getMinutes() === 0))
+    );
+  }
+
+  private formatTime(date: Date): string {
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  }
+
+  private parseDateAndTime(dateStr: string, timeStr: string): string {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    const date = new Date(year, month - 1, day, hours, minutes, 0, 0);
+    return date.toISOString();
+  }
+
+  private parseDateOnly(dateStr: string, isEnd: boolean): string {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    if (isEnd) {
+      const date = new Date(year, month - 1, day, 23, 59, 59, 999);
+      return date.toISOString();
+    } else {
+      const date = new Date(year, month - 1, day, 0, 0, 0, 0);
+      return date.toISOString();
+    }
   }
 
   // Multiselect Dropdown Handlers

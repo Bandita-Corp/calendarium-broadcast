@@ -31,6 +31,7 @@ export class CalendarViewComponent implements OnChanges {
   @Output() dateSelected = new EventEmitter<Date>();
   @Output() dateRangeSelected = new EventEmitter<{start: Date, end: Date}>();
   @Output() eventClicked = new EventEmitter<string>();
+  @Output() addClicked = new EventEmitter<Date>();
 
   @ViewChild('calendarWrapper', { static: false }) calendarWrapper!: ElementRef;
 
@@ -41,6 +42,7 @@ export class CalendarViewComponent implements OnChanges {
   selectedDate: Date | null = null;
   showPopup = false;
   popupPosition = { top: 0, left: 0 };
+  allEventTitlesVisible: boolean = false;
 
   private elementRef = inject(ElementRef);
 
@@ -57,7 +59,7 @@ export class CalendarViewComponent implements OnChanges {
   private buildEvents() {
     this.events = this.periods.map((p) => {
       const start = new Date(p.startDate);
-      const end = new Date(p.endDate);
+      const end = p.endDate ? new Date(p.endDate) : new Date(this.year, 11, 31, 23, 59, 59);
       return {
         id: p.id,
         title: p.name,
@@ -119,10 +121,12 @@ export class CalendarViewComponent implements OnChanges {
     return this.periods.filter(p => {
       const start = new Date(p.startDate);
       start.setHours(0, 0, 0, 0);
-      const end = new Date(p.endDate);
-      end.setHours(23, 59, 59, 999);
+      const end = p.endDate ? new Date(p.endDate) : null;
+      if (end) {
+        end.setHours(23, 59, 59, 999);
+      }
       
-      return target >= start && target <= end;
+      return target >= start && (!end || target <= end);
     });
   }
 
@@ -139,6 +143,8 @@ export class CalendarViewComponent implements OnChanges {
       case 'vibe': return '✨';
       case 'impression': return '💭';
       case 'event': return '🎈';
+      case 'done': return '✅';
+      case 'trend': return '📈';
       default: return '📝';
     }
   }
@@ -186,10 +192,33 @@ export class CalendarViewComponent implements OnChanges {
     this.selectedDate = null;
   }
 
-  editPeriod(periodId: string, event: MouseEvent) {
+  viewPeriod(periodId: string, event: MouseEvent) {
     event.stopPropagation();
     this.eventClicked.emit(periodId);
     this.closePopup();
+  }
+
+  editPeriod(periodId: string, event: MouseEvent) {
+    event.stopPropagation();
+    this.eventClicked.emit(periodId); // We can let parent decide if it should open edit or view
+    this.closePopup();
+  }
+
+   addPeriod(date: Date, event: MouseEvent) {
+    event.stopPropagation();
+    this.addClicked.emit(date);
+    this.closePopup();
+  }
+
+  isEventTitleVisible(eventId?: string | number): boolean {
+    return this.allEventTitlesVisible;
+  }
+
+  toggleEventTitle(eventId?: string | number, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.allEventTitlesVisible = !this.allEventTitlesVisible;
   }
 
   @HostListener('document:click', ['$event'])
@@ -211,5 +240,15 @@ export class CalendarViewComponent implements OnChanges {
     if (this.showPopup) {
       this.closePopup();
     }
+  }
+
+  hasTime(period: Period): boolean {
+    if (!period || !period.startDate || !period.endDate) return false;
+    const start = new Date(period.startDate);
+    const end = new Date(period.endDate);
+    return !(
+      (start.getHours() === 0 && start.getMinutes() === 0) &&
+      ((end.getHours() === 23 && end.getMinutes() === 59) || (end.getHours() === 0 && end.getMinutes() === 0))
+    );
   }
 }

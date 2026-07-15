@@ -7,7 +7,8 @@ import { PresetsService } from '@/services/presets.service';
 import { Period, Preset } from '@/models';
 import { TimelineBarComponent } from '@/components/timeline-bar/timeline-bar.component';
 import { CalendarViewComponent } from '@/components/calendar-view/calendar-view.component';
-import { TranslateModule } from '@ngx-translate/core';
+import { NoteViewModalComponent } from '@/components/note-view-modal/note-view-modal.component';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-public-board',
@@ -18,7 +19,8 @@ import { TranslateModule } from '@ngx-translate/core';
     FormsModule,
     TimelineBarComponent,
     CalendarViewComponent,
-    TranslateModule
+    TranslateModule,
+    NoteViewModalComponent
   ],
   templateUrl: './public-board.component.html',
   styleUrl: './public-board.component.css',
@@ -26,6 +28,7 @@ import { TranslateModule } from '@ngx-translate/core';
 export class PublicBoardComponent implements OnInit {
   private periodsService = inject(PeriodsService);
   private presetsService = inject(PresetsService);
+  private translate = inject(TranslateService);
 
   presets: Preset[] = [];
   selectedPresetIds = new Set<string>();
@@ -36,6 +39,10 @@ export class PublicBoardComponent implements OnInit {
   viewMode: 'timeline' | 'calendar' = 'timeline';
   dropdownOpen = false;
   selectedDate: Date | null = null;
+
+  // View Modal fields
+  showViewModal = false;
+  viewModalPeriod: Period | null = null;
 
   ngOnInit() {
     this.loadPresets();
@@ -176,14 +183,27 @@ export class PublicBoardComponent implements OnInit {
       const period = (preset.periods || []).find(p => p.id === periodId);
       if (period) {
         this.selectedDate = new Date(period.startDate);
+        this.openViewPeriod(period);
         break;
       }
     }
   }
 
+  openViewPeriod(period: Period) {
+    this.viewModalPeriod = period;
+    this.showViewModal = true;
+  }
+
+  closeViewPeriod() {
+    this.showViewModal = false;
+    this.viewModalPeriod = null;
+  }
+
   getSelectedDateLabel(): string {
     const date = this.selectedDate || new Date();
-    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    const lang = this.translate.currentLang || this.translate.defaultLang || 'en';
+    const locale = lang === 'ru' ? 'ru-RU' : 'en-US';
+    return date.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
   }
 
   clearSelectedDate() {
@@ -202,6 +222,8 @@ export class PublicBoardComponent implements OnInit {
       case 'vibe': return '✨';
       case 'impression': return '💭';
       case 'event': return '🎈';
+      case 'done': return '✅';
+      case 'trend': return '📈';
       default: return '📝';
     }
   }
@@ -214,11 +236,23 @@ export class PublicBoardComponent implements OnInit {
     return this.displayedPeriods.filter(p => {
       const start = new Date(p.startDate);
       start.setHours(0, 0, 0, 0);
-      const end = new Date(p.endDate);
-      end.setHours(23, 59, 59, 999);
+      const end = p.endDate ? new Date(p.endDate) : null;
+      if (end) {
+        end.setHours(23, 59, 59, 999);
+      }
       
-      return target >= start && target <= end;
+      return target >= start && (!end || target <= end);
     });
+  }
+
+  hasTime(period: Period): boolean {
+    if (!period || !period.startDate || !period.endDate) return false;
+    const start = new Date(period.startDate);
+    const end = new Date(period.endDate);
+    return !(
+      (start.getHours() === 0 && start.getMinutes() === 0) &&
+      ((end.getHours() === 23 && end.getMinutes() === 59) || (end.getHours() === 0 && end.getMinutes() === 0))
+    );
   }
 }
 

@@ -16,7 +16,7 @@
     </div>
   </div>
 
-  <div class="dashboard-grid" style="display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+  <div class="dashboard-grid" style="display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 1.5rem; margin-top: 1.5rem;">
     <!-- Sidebar -->
     <div class="sidebar" style="display: flex; flex-direction: column; gap: 1.5rem;">
       <!-- Multiselect Card -->
@@ -96,13 +96,21 @@
                               'badge-period': period.noteType.toLowerCase() === 'period',
                               'badge-vibe': period.noteType.toLowerCase() === 'vibe',
                               'badge-impression': period.noteType.toLowerCase() === 'impression',
-                              'badge-event': period.noteType.toLowerCase() === 'event'
+                              'badge-event': period.noteType.toLowerCase() === 'event',
+                              'badge-done': period.noteType.toLowerCase() === 'done',
+                              'badge-trend': period.noteType.toLowerCase() === 'trend'
                             }">
                         {{ period.noteType }}
                       </span>
                     </div>
                     <div class="note-dates">
-                      📅 <span>{{ period.startDate | date: 'MMM d' }}</span> – <span>{{ period.endDate | date: 'MMM d' }}</span>
+                      📅 
+                      <ng-container *ngIf="hasTime(period)">
+                        <span>{{ period.startDate | date: 'MMM d, HH:mm' }}</span> – <span>{{ period.endDate | date: 'MMM d, HH:mm' }}</span>
+                      </ng-container>
+                      <ng-container *ngIf="!hasTime(period)">
+                        <span>{{ period.startDate | date: 'MMM d' }}</span> – <span>{{ period.endDate ? (period.endDate | date: 'MMM d') : ('CALENDAR.ONGOING' | translate) }}</span>
+                      </ng-container>
                     </div>
                     <div *ngIf="period.noteContent" class="note-details">
                       {{ period.noteContent }}
@@ -164,10 +172,10 @@
       <div *ngIf="!loading && viewMode === 'calendar'" class="card glass-panel feed-card" style="margin-top: 1.5rem; padding: 1.5rem; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
           <h2 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--color-text); display: flex; align-items: center; gap: 0.5rem;">
-            📰 Notes Active on {{ getSelectedDateLabel() }}
+            📰 {{ 'CALENDAR_POPUP.TITLE' | translate }} {{ getSelectedDateLabel() }}
           </h2>
           <button *ngIf="selectedDate" class="btn-outline" (click)="clearSelectedDate()" style="padding: 0.3rem 0.75rem; font-size: 0.8rem; border-radius: 6px;">
-            Reset to Today
+            {{ 'CALENDAR_POPUP.RESET_TODAY' | translate }}
           </button>
         </div>
         
@@ -182,14 +190,16 @@
                         'badge-period': (period.noteType || '').toLowerCase() === 'period',
                         'badge-vibe': (period.noteType || '').toLowerCase() === 'vibe',
                         'badge-impression': (period.noteType || '').toLowerCase() === 'impression',
-                        'badge-event': (period.noteType || '').toLowerCase() === 'event'
+                        'badge-event': (period.noteType || '').toLowerCase() === 'event',
+                        'badge-done': (period.noteType || '').toLowerCase() === 'done',
+                        'badge-trend': (period.noteType || '').toLowerCase() === 'trend'
                       }"
                       style="font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem;">
-                  {{ getNoteTypeIcon(period.noteType) }} {{ period.noteType || 'Period' }}
+                  {{ getNoteTypeIcon(period.noteType) }} {{ 'NOTE_TYPES.' + (period.noteType || 'Period').toUpperCase() | translate }}
                 </span>
                 
-                <span style="font-size: 0.7rem; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 0.25rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="getPresetNameForPeriod(period)">
-                  📁 {{ getPresetNameForPeriod(period) }}
+                <span style="font-size: 0.7rem; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 0.25rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="period.presetId ? getPresetNameForPeriod(period) : ('CALENDAR_POPUP.GLOBAL' | translate)">
+                  📁 {{ period.presetId ? getPresetNameForPeriod(period) : ('CALENDAR_POPUP.GLOBAL' | translate) }}
                 </span>
               </div>
               
@@ -198,7 +208,13 @@
               </h3>
               
               <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">
-                📅 {{ period.startDate | date: 'MMM d, y' }} – {{ period.endDate | date: 'MMM d, y' }}
+                📅 
+                <ng-container *ngIf="hasTime(period)">
+                  {{ period.startDate | date: 'MMM d, y, HH:mm' }} – {{ period.endDate | date: 'MMM d, y, HH:mm' }}
+                </ng-container>
+                <ng-container *ngIf="!hasTime(period)">
+                  {{ period.startDate | date: 'MMM d, y' }} – {{ period.endDate ? (period.endDate | date: 'MMM d, y') : ('CALENDAR.ONGOING' | translate) }}
+                </ng-container>
               </div>
               
               <p *ngIf="period.noteContent" style="font-size: 0.85rem; line-height: 1.4; color: var(--color-text); opacity: 0.8; margin: 0 0 0.75rem;">
@@ -214,10 +230,20 @@
           }
         </div>
         
-        <div *ngIf="activePeriodsForSelectedDate.length === 0" class="empty-state-box" style="text-align: center; padding: 2.5rem; background: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.05); border-radius: 12px; opacity: 0.6;">
-          <p style="margin: 0; font-size: 0.95rem;">No active notes found for this date.</p>
+        <div *ngIf="activePeriodsForSelectedDate.length === 0" class="empty-state-box" style="text-align: center; padding: 2.5rem; background: rgba(255, 255, 255, 0.01); border: 1px dashed rgba(255, 255, 255, 0.05); border-radius: 12px; opacity: 0.6;">
+          <p style="margin: 0; font-size: 0.95rem;">{{ 'CALENDAR_POPUP.NO_NOTES' | translate }}</p>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- View Modal Component -->
+<app-note-view-modal
+  *ngIf="showViewModal"
+  [period]="viewModalPeriod"
+  [presets]="presets"
+  [isEditable]="false"
+  [year]="currentYear"
+  (close)="closeViewPeriod()">
+</app-note-view-modal>

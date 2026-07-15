@@ -102,13 +102,21 @@
                               'badge-period': period.noteType.toLowerCase() === 'period',
                               'badge-vibe': period.noteType.toLowerCase() === 'vibe',
                               'badge-impression': period.noteType.toLowerCase() === 'impression',
-                              'badge-event': period.noteType.toLowerCase() === 'event'
+                              'badge-event': period.noteType.toLowerCase() === 'event',
+                              'badge-done': period.noteType.toLowerCase() === 'done',
+                              'badge-trend': period.noteType.toLowerCase() === 'trend'
                             }">
                         {{ period.noteType }}
                       </span>
                     </div>
                     <div class="note-dates">
-                      📅 <span>{{ period.startDate | date: 'MMM d' }}</span> – <span>{{ period.endDate | date: 'MMM d' }}</span>
+                      📅 
+                      <ng-container *ngIf="hasTime(period)">
+                        <span>{{ period.startDate | date: 'MMM d, HH:mm' }}</span> – <span>{{ period.endDate | date: 'MMM d, HH:mm' }}</span>
+                      </ng-container>
+                      <ng-container *ngIf="!hasTime(period)">
+                        <span>{{ period.startDate | date: 'MMM d' }}</span> – <span>{{ period.endDate ? (period.endDate | date: 'MMM d') : ('CALENDAR.ONGOING' | translate) }}</span>
+                      </ng-container>
                     </div>
                     <div *ngIf="period.noteContent" class="note-details">
                       {{ period.noteContent }}
@@ -166,10 +174,10 @@
         
         <!-- View Toggle (Timeline vs Calendar) -->
         <div class="view-toggle">
-          <button class="view-toggle-btn" [class.active]="viewSubMode === 'timeline'" (click)="viewSubMode = 'timeline'">
+          <button class="view-toggle-btn" [class.active]="viewSubMode === 'timeline'" (click)="setSubMode('timeline')">
             📊 Timeline
           </button>
-          <button class="view-toggle-btn" [class.active]="viewSubMode === 'calendar'" (click)="viewSubMode = 'calendar'">
+          <button class="view-toggle-btn" [class.active]="viewSubMode === 'calendar'" (click)="setSubMode('calendar')">
             📅 Calendar
           </button>
         </div>
@@ -180,17 +188,17 @@
         <app-timeline-bar *ngIf="viewSubMode === 'timeline'" [periods]="displayedPeriods" [year]="currentYear" style="width: 100%;"></app-timeline-bar>
 
         <!-- Calendar View -->
-        <app-calendar-view *ngIf="viewSubMode === 'calendar'" [periods]="displayedPeriods" [presets]="presets" [isEditable]="true" [year]="currentYear" (dateSelected)="onCalendarDateSelected($event)" (eventClicked)="onCalendarEventClicked($event)" style="width: 100%;"></app-calendar-view>
+        <app-calendar-view *ngIf="viewSubMode === 'calendar'" [periods]="displayedPeriods" [presets]="presets" [isEditable]="true" [year]="currentYear" (dateSelected)="onCalendarDateSelected($event)" (eventClicked)="onCalendarEventClicked($event)" (addClicked)="onCalendarAddClicked($event)" style="width: 100%;"></app-calendar-view>
       </div>
 
       <!-- Calendar Active Notes Feed (Live Mode) -->
       <div *ngIf="viewSubMode === 'calendar'" class="card glass-panel feed-card" style="margin-top: 1.5rem; padding: 1.5rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
           <h2 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--color-text); display: flex; align-items: center; gap: 0.5rem;">
-            📰 Notes Active on {{ getSelectedDateLabel() }}
+            📰 {{ 'CALENDAR_POPUP.TITLE' | translate }} {{ getSelectedDateLabel() }}
           </h2>
           <button *ngIf="selectedDate" class="btn-outline" (click)="clearSelectedDate()" style="padding: 0.3rem 0.75rem; font-size: 0.8rem; border-radius: 6px;">
-            Reset to Today
+            {{ 'CALENDAR_POPUP.RESET_TODAY' | translate }}
           </button>
         </div>
         
@@ -205,14 +213,16 @@
                         'badge-period': (period.noteType || '').toLowerCase() === 'period',
                         'badge-vibe': (period.noteType || '').toLowerCase() === 'vibe',
                         'badge-impression': (period.noteType || '').toLowerCase() === 'impression',
-                        'badge-event': (period.noteType || '').toLowerCase() === 'event'
+                        'badge-event': (period.noteType || '').toLowerCase() === 'event',
+                        'badge-done': (period.noteType || '').toLowerCase() === 'done',
+                        'badge-trend': (period.noteType || '').toLowerCase() === 'trend'
                       }"
                       style="font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem;">
-                  {{ getNoteTypeIcon(period.noteType) }} {{ period.noteType || 'Period' }}
+                  {{ getNoteTypeIcon(period.noteType) }} {{ 'NOTE_TYPES.' + (period.noteType || 'Period').toUpperCase() | translate }}
                 </span>
                 
-                <span style="font-size: 0.7rem; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 0.25rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="getPresetNameForPeriod(period)">
-                  📁 {{ getPresetNameForPeriod(period) }}
+                <span style="font-size: 0.7rem; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 0.25rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="period.presetId ? getPresetNameForPeriod(period) : ('CALENDAR_POPUP.GLOBAL' | translate)">
+                  📁 {{ period.presetId ? getPresetNameForPeriod(period) : ('CALENDAR_POPUP.GLOBAL' | translate) }}
                 </span>
               </div>
               
@@ -221,7 +231,13 @@
               </h3>
               
               <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">
-                📅 {{ period.startDate | date: 'MMM d, y' }} – {{ period.endDate | date: 'MMM d, y' }}
+                📅 
+                <ng-container *ngIf="hasTime(period)">
+                  {{ period.startDate | date: 'MMM d, y, HH:mm' }} – {{ period.endDate | date: 'MMM d, y, HH:mm' }}
+                </ng-container>
+                <ng-container *ngIf="!hasTime(period)">
+                  {{ period.startDate | date: 'MMM d, y' }} – {{ period.endDate ? (period.endDate | date: 'MMM d, y') : ('CALENDAR.ONGOING' | translate) }}
+                </ng-container>
               </div>
               
               <p *ngIf="period.noteContent" style="font-size: 0.85rem; line-height: 1.4; color: var(--color-text); opacity: 0.8; margin: 0 0 0.75rem;">
@@ -237,8 +253,8 @@
           }
         </div>
         
-        <div *ngIf="activePeriodsForSelectedDate.length === 0" class="empty-state-box" style="text-align: center; padding: 2.5rem; background: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.05); border-radius: 12px; opacity: 0.6;">
-          <p style="margin: 0; font-size: 0.95rem;">No active notes found for this date.</p>
+        <div *ngIf="activePeriodsForSelectedDate.length === 0" class="empty-state-box" style="text-align: center; padding: 2.5rem; background: rgba(255, 255, 255, 0.01); border: 1px dashed rgba(255, 255, 255, 0.05); border-radius: 12px; opacity: 0.6;">
+          <p style="margin: 0; font-size: 0.95rem;">{{ 'CALENDAR_POPUP.NO_NOTES' | translate }}</p>
         </div>
       </div>
 
@@ -259,14 +275,22 @@
                           'badge-period': period.noteType.toLowerCase() === 'period',
                           'badge-vibe': period.noteType.toLowerCase() === 'vibe',
                           'badge-impression': period.noteType.toLowerCase() === 'impression',
-                          'badge-event': period.noteType.toLowerCase() === 'event'
+                          'badge-event': period.noteType.toLowerCase() === 'event',
+                          'badge-done': period.noteType.toLowerCase() === 'done',
+                          'badge-trend': period.noteType.toLowerCase() === 'trend'
                         }">
                     {{ period.noteType }}
                   </span>
                 }
               </div>
               <div class="detail-dates" style="font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.25rem;">
-                📅 <span>{{ period.startDate | date: 'MMM d, y' }}</span> – <span>{{ period.endDate | date: 'MMM d, y' }}</span>
+                📅 
+                <ng-container *ngIf="hasTime(period)">
+                  <span>{{ period.startDate | date: 'MMM d, y, HH:mm' }}</span> – <span>{{ period.endDate | date: 'MMM d, y, HH:mm' }}</span>
+                </ng-container>
+                <ng-container *ngIf="!hasTime(period)">
+                  <span>{{ period.startDate | date: 'MMM d, y' }}</span> – <span>{{ period.endDate ? (period.endDate | date: 'MMM d, y') : ('CALENDAR.ONGOING' | translate) }}</span>
+                </ng-container>
               </div>
               @if (period.noteContent) {
                 <div class="detail-content" style="font-size: 0.95rem; line-height: 1.5; color: rgba(255,255,255,0.9); background: rgba(0,0,0,0.15); padding: 0.75rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03);">
@@ -362,13 +386,20 @@
                                   'badge-period': period.noteType.toLowerCase() === 'period',
                                   'badge-vibe': period.noteType.toLowerCase() === 'vibe',
                                   'badge-impression': period.noteType.toLowerCase() === 'impression',
-                                  'badge-event': period.noteType.toLowerCase() === 'event'
+                                  'badge-event': period.noteType.toLowerCase() === 'event',
+                                  'badge-done': period.noteType.toLowerCase() === 'done',
+                                  'badge-trend': period.noteType.toLowerCase() === 'trend'
                                 }">
                             {{ period.noteType }}
                           </span>
                         </div>
                         <div style="font-size: 0.75rem; opacity: 0.5; margin-top: 0.1rem;">
-                          {{ period.startDate | date: 'MM/dd' }} - {{ period.endDate | date: 'MM/dd' }}
+                          <ng-container *ngIf="hasTime(period)">
+                            {{ period.startDate | date: 'MM/dd, HH:mm' }} - {{ period.endDate | date: 'MM/dd, HH:mm' }}
+                          </ng-container>
+                          <ng-container *ngIf="!hasTime(period)">
+                            {{ period.startDate | date: 'MM/dd' }} - {{ period.endDate ? (period.endDate | date: 'MM/dd') : ('CALENDAR.ONGOING' | translate) }}
+                          </ng-container>
                         </div>
                         <!-- Tags -->
                         <div *ngIf="period.hashtags?.length" style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem;">
@@ -423,7 +454,8 @@
           [isEditable]="true"
           (dateSelected)="onCalendarDateSelected($event)"
           (eventClicked)="onCalendarEventClicked($event)"
-          (dateRangeSelected)="onCalendarDateRangeSelected($event)">
+          (dateRangeSelected)="onCalendarDateRangeSelected($event)"
+          (addClicked)="onCalendarAddClicked($event)">
         </app-calendar-view>
       </div>
 
@@ -431,10 +463,10 @@
       <div class="card glass-panel feed-card" style="margin-top: 1.5rem; padding: 1.5rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
           <h2 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--color-text); display: flex; align-items: center; gap: 0.5rem;">
-            📰 Notes Active on {{ getSelectedDateLabel() }}
+            📰 {{ 'CALENDAR_POPUP.TITLE' | translate }} {{ getSelectedDateLabel() }}
           </h2>
           <button *ngIf="selectedDate" class="btn-outline" (click)="clearSelectedDate()" style="padding: 0.3rem 0.75rem; font-size: 0.8rem; border-radius: 6px;">
-            Reset to Today
+            {{ 'CALENDAR_POPUP.RESET_TODAY' | translate }}
           </button>
         </div>
         
@@ -449,14 +481,16 @@
                         'badge-period': (period.noteType || '').toLowerCase() === 'period',
                         'badge-vibe': (period.noteType || '').toLowerCase() === 'vibe',
                         'badge-impression': (period.noteType || '').toLowerCase() === 'impression',
-                        'badge-event': (period.noteType || '').toLowerCase() === 'event'
+                        'badge-event': (period.noteType || '').toLowerCase() === 'event',
+                        'badge-done': (period.noteType || '').toLowerCase() === 'done',
+                        'badge-trend': (period.noteType || '').toLowerCase() === 'trend'
                       }"
                       style="font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem;">
-                  {{ getNoteTypeIcon(period.noteType) }} {{ period.noteType || 'Period' }}
+                  {{ getNoteTypeIcon(period.noteType) }} {{ 'NOTE_TYPES.' + (period.noteType || 'Period').toUpperCase() | translate }}
                 </span>
                 
-                <span style="font-size: 0.7rem; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 0.25rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="getPresetNameForPeriod(period)">
-                  📁 {{ getPresetNameForPeriod(period) }}
+                <span style="font-size: 0.7rem; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 0.25rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="period.presetId ? getPresetNameForPeriod(period) : ('CALENDAR_POPUP.GLOBAL' | translate)">
+                  📁 {{ period.presetId ? getPresetNameForPeriod(period) : ('CALENDAR_POPUP.GLOBAL' | translate) }}
                 </span>
               </div>
               
@@ -465,7 +499,13 @@
               </h3>
               
               <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">
-                📅 {{ period.startDate | date: 'MMM d, y' }} – {{ period.endDate | date: 'MMM d, y' }}
+                📅 
+                <ng-container *ngIf="hasTime(period)">
+                  {{ period.startDate | date: 'MMM d, y, HH:mm' }} – {{ period.endDate | date: 'MMM d, y, HH:mm' }}
+                </ng-container>
+                <ng-container *ngIf="!hasTime(period)">
+                  {{ period.startDate | date: 'MMM d, y' }} – {{ period.endDate ? (period.endDate | date: 'MMM d, y') : ('CALENDAR.ONGOING' | translate) }}
+                </ng-container>
               </div>
               
               <p *ngIf="period.noteContent" style="font-size: 0.85rem; line-height: 1.4; color: var(--color-text); opacity: 0.8; margin: 0 0 0.75rem;">
@@ -480,8 +520,8 @@
 
               <!-- Actions in Edit Mode -->
               <div style="display: flex; justify-content: flex-end; gap: 0.4rem; margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem;">
-                <button class="btn-icon edit" (click)="openEditPeriodForFeed(period)" title="Edit" style="font-size: 0.8rem; padding: 2px 6px;">✏️ Edit</button>
-                <button class="btn-icon delete" (click)="deletePeriod(period.id)" title="Delete" style="font-size: 0.8rem; padding: 2px 6px;">🗑️ Delete</button>
+                <button class="btn-icon edit" (click)="openEditPeriodForFeed(period)" [title]="'CALENDAR_POPUP.EDIT' | translate" style="font-size: 0.8rem; padding: 2px 6px;">{{ 'CALENDAR_POPUP.EDIT' | translate }}</button>
+                <button class="btn-icon delete" (click)="deletePeriod(period.id)" [title]="'CALENDAR_POPUP.DELETE' | translate" style="font-size: 0.8rem; padding: 2px 6px;">{{ 'CALENDAR_POPUP.DELETE' | translate }}</button>
               </div>
 
             </div>
@@ -489,7 +529,7 @@
         </div>
         
         <div *ngIf="activePeriodsForSelectedDate.length === 0" class="empty-state-box" style="text-align: center; padding: 2.5rem; background: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.05); border-radius: 12px; opacity: 0.6;">
-          <p style="margin: 0; font-size: 0.95rem;">No active notes found for this date.</p>
+          <p style="margin: 0; font-size: 0.95rem;">{{ 'CALENDAR_POPUP.NO_NOTES' | translate }}</p>
         </div>
       </div>
     </div>
@@ -530,6 +570,24 @@
         </div>
       </div>
       
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: -0.25rem;">
+        <input type="checkbox" id="addTimeCheckbox" [(ngModel)]="periodFormModel.hasTime" style="width: 16px; height: 16px; accent-color: var(--color-primary); cursor: pointer;" />
+        <label for="addTimeCheckbox" style="font-size: 0.85rem; font-weight: 600; cursor: pointer; user-select: none; opacity: 0.9;">
+          {{ 'EVENT_MODAL.ADD_TIME' | translate }}
+        </label>
+      </div>
+
+      <div *ngIf="periodFormModel.hasTime" style="display: flex; gap: 1rem; margin-top: -0.25rem;">
+        <div style="flex: 1;">
+          <label class="form-label" style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; font-weight: 600; opacity: 0.9;">{{ 'EVENT_MODAL.START_TIME' | translate }}</label>
+          <input type="time" [(ngModel)]="periodFormModel.startTime" class="form-input" style="width: 100%;" />
+        </div>
+        <div style="flex: 1;">
+          <label class="form-label" style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; font-weight: 600; opacity: 0.9;">{{ 'EVENT_MODAL.END_TIME' | translate }}</label>
+          <input type="time" [(ngModel)]="periodFormModel.endTime" class="form-input" style="width: 100%;" />
+        </div>
+      </div>
+      
       <div style="display: flex; gap: 1rem; align-items: center;">
         <div style="flex: 1;">
           <label class="form-label" style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; font-weight: 600; opacity: 0.9;">{{ 'EVENT_MODAL.COLOR_TAG' | translate }}</label>
@@ -545,6 +603,8 @@
             <button type="button" class="note-type-select-btn" [class.active]="periodFormModel.noteType === 'Vibe'" (click)="selectNoteType('Vibe')">✨ {{ 'EVENT_MODAL.TYPE_VIBE' | translate }}</button>
             <button type="button" class="note-type-select-btn" [class.active]="periodFormModel.noteType === 'Impression'" (click)="selectNoteType('Impression')">💭 {{ 'EVENT_MODAL.TYPE_IMPRESSION' | translate }}</button>
             <button type="button" class="note-type-select-btn" [class.active]="periodFormModel.noteType === 'Event'" (click)="selectNoteType('Event')">🎈 {{ 'EVENT_MODAL.TYPE_EVENT' | translate }}</button>
+            <button type="button" class="note-type-select-btn" [class.active]="periodFormModel.noteType === 'Done'" (click)="selectNoteType('Done')">✅ {{ 'EVENT_MODAL.TYPE_DONE' | translate }}</button>
+            <button type="button" class="note-type-select-btn" [class.active]="periodFormModel.noteType === 'Trend'" (click)="selectNoteType('Trend')">📈 {{ 'EVENT_MODAL.TYPE_TREND' | translate }}</button>
           </div>
         </div>
       </div>
@@ -571,8 +631,19 @@
       
       <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
         <button class="btn-outline" (click)="showPeriodForm = false" style="padding: 0.5rem 1.2rem;">{{ 'EVENT_MODAL.CANCEL' | translate }}</button>
-        <button class="btn-primary" (click)="savePeriod()" [disabled]="!periodFormModel.name || !periodFormModel.startDate || !periodFormModel.endDate" style="padding: 0.5rem 1.2rem;">{{ 'EVENT_MODAL.SAVE' | translate }}</button>
+        <button class="btn-primary" (click)="savePeriod()" [disabled]="!periodFormModel.name || !periodFormModel.startDate" style="padding: 0.5rem 1.2rem;">{{ 'EVENT_MODAL.SAVE' | translate }}</button>
       </div>
     </div>
   </div>
 </div>
+
+<!-- View Modal Component -->
+<app-note-view-modal
+  *ngIf="showViewModal"
+  [period]="viewModalPeriod"
+  [presets]="presets"
+  [isEditable]="true"
+  [year]="currentYear"
+  (close)="closeViewPeriod()"
+  (edit)="handleViewModalEdit($event)">
+</app-note-view-modal>
