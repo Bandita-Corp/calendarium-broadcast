@@ -43,8 +43,8 @@ export class PeriodsService {
     const start = new Date(dto.startDate);
     const end = new Date(dto.endDate);
 
-    if (start >= end) {
-      throw new BadRequestException('startDate must be before endDate');
+    if (start > end) {
+      throw new BadRequestException('startDate must be before or equal to endDate');
     }
 
     return this.prisma.period.create({

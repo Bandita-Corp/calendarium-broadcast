@@ -1,0 +1,38 @@
+<div class="datepicker-container" (click)="$event.stopPropagation()">
+  <div class="input-wrapper" (click)="toggleOpen()">
+    <input
+      type="text"
+      [value]="getDisplayValue()"
+      readonly
+      class="form-input cursor-pointer"
+      [placeholder]="placeholder"
+    />
+    <span class="calendar-icon">📅</span>
+  </div>
+
+  <div class="datepicker-dropdown glass-panel" *ngIf="isOpen" [class.align-right]="align === 'right'">
+    <div class="datepicker-header">
+      <button type="button" class="nav-btn" (click)="prevMonth($event)">◀</button>
+      <span class="current-month">{{ getCurrentMonthHeader() }}</span>
+      <button type="button" class="nav-btn" (click)="nextMonth($event)">▶</button>
+    </div>
+
+    <div class="weekday-grid">
+      <span *ngFor="let day of getWeekdays()" class="weekday-label">{{ day }}</span>
+    </div>
+
+    <div class="days-grid">
+      <button
+        *ngFor="let day of calendarDays"
+        type="button"
+        class="day-btn"
+        [class.different-month]="!day.isCurrentMonth"
+        [class.today]="day.isToday"
+        [class.selected]="day.isSelected"
+        (click)="selectDay(day.date, $event)"
+      >
+        {{ day.date.getDate() }}
+      </button>
+    </div>
+  </div>
+</div>

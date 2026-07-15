@@ -1,13 +1,13 @@
-<div class="calendar-wrapper">
+<div #calendarWrapper class="calendar-wrapper" style="position: relative;">
   <div class="calendar-controls">
     <div class="nav-buttons">
-      <button class="btn-outline font-small" mwlCalendarPreviousView [view]="'month'" [(viewDate)]="viewDate">
+      <button class="btn-outline font-small" mwlCalendarPreviousView [view]="'month'" [(viewDate)]="viewDate" (click)="closePopup()">
         ◀
       </button>
-      <button class="btn-outline font-small" mwlCalendarToday [(viewDate)]="viewDate">
+      <button class="btn-outline font-small" mwlCalendarToday [(viewDate)]="viewDate" (click)="closePopup()">
         Today
       </button>
-      <button class="btn-outline font-small" mwlCalendarNextView [view]="'month'" [(viewDate)]="viewDate">
+      <button class="btn-outline font-small" mwlCalendarNextView [view]="'month'" [(viewDate)]="viewDate" (click)="closePopup()">
         ▶
       </button>
     </div>
@@ -18,9 +18,70 @@
     <mwl-calendar-month-view
       [viewDate]="viewDate"
       [events]="events"
-      (dayClicked)="dayClicked($event.day)"
+      (dayClicked)="dayClicked($event.day, $event.sourceEvent)"
       (eventClicked)="onEventClicked($event)"
     >
     </mwl-calendar-month-view>
+  </div>
+
+  <!-- Day Resume Popup -->
+  <div *ngIf="showPopup && selectedDate" 
+       class="calendar-popup-container card glass-panel"
+       [style.top.px]="popupPosition.top"
+       [style.left.px]="popupPosition.left">
+    
+    <div class="popup-header">
+      <h3 class="popup-title">
+        📰 {{ 'CALENDAR_POPUP.TITLE' | translate }} {{ selectedDate | date: 'MMM d, y' }}
+      </h3>
+      <button class="popup-close-btn" (click)="closePopup()" title="Close">✕</button>
+    </div>
+
+    <div class="popup-content">
+      @for (period of activePeriodsForSelectedDate; track period.id) {
+        <div class="popup-item" [style.border-left-color]="period.color">
+          <div class="popup-item-header">
+            <span class="note-type-badge-custom" 
+                  [ngClass]="{
+                    'badge-period': (period.noteType || '').toLowerCase() === 'period',
+                    'badge-vibe': (period.noteType || '').toLowerCase() === 'vibe',
+                    'badge-impression': (period.noteType || '').toLowerCase() === 'impression',
+                    'badge-event': (period.noteType || '').toLowerCase() === 'event'
+                  }">
+              {{ getNoteTypeIcon(period.noteType) }} {{ period.noteType || 'Period' }}
+            </span>
+            <span class="popup-preset-name" [title]="getPresetNameForPeriod(period)">
+              📁 {{ getPresetNameForPeriod(period) }}
+            </span>
+          </div>
+
+          <h4 class="popup-item-name">{{ period.name }}</h4>
+
+          <div class="popup-item-dates">
+            📅 {{ period.startDate | date: 'MMM d, y' }} – {{ period.endDate | date: 'MMM d, y' }}
+          </div>
+
+          <p *ngIf="period.noteContent" class="popup-item-content">
+            {{ period.noteContent }}
+          </p>
+
+          <div *ngIf="period.hashtags?.length" class="popup-item-tags">
+            <span *ngFor="let tag of period.hashtags" class="tag-chip">
+              #{{ tag }}
+            </span>
+          </div>
+
+          <div *ngIf="isEditable" class="popup-item-actions">
+            <button class="btn-icon edit" (click)="editPeriod(period.id, $event)">
+              {{ 'CALENDAR_POPUP.EDIT' | translate }}
+            </button>
+          </div>
+        </div>
+      }
+
+      <div *ngIf="activePeriodsForSelectedDate.length === 0" class="popup-empty">
+        <p>{{ 'CALENDAR_POPUP.NO_NOTES' | translate }}</p>
+      </div>
+    </div>
   </div>
 </div>

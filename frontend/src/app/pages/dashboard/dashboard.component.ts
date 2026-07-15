@@ -7,12 +7,20 @@ import { PeriodsService } from '@/services/periods.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { CalendarViewComponent } from '@/components/calendar-view/calendar-view.component';
 import { TimelineBarComponent } from '@/components/timeline-bar/timeline-bar.component';
+import { DatePickerComponent } from '@/components/date-picker/date-picker.component';
 import { Preset, Period } from '@/models';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, CalendarViewComponent, TimelineBarComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslateModule,
+    CalendarViewComponent,
+    TimelineBarComponent,
+    DatePickerComponent
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -29,6 +37,7 @@ export class DashboardComponent implements OnInit {
   currentYear = new Date().getFullYear();
   viewSubMode: 'timeline' | 'calendar' = 'timeline';
   dropdownOpen = false;
+  selectedDate: Date | null = null;
 
   // Period Form fields
   showPeriodForm = false;
@@ -174,6 +183,31 @@ export class DashboardComponent implements OnInit {
   }
 
   // Period / Date editing functions
+  openAddPeriodFromCalendar() {
+    let defaultPresetId = '';
+    if (this.expandedPresetIds.size > 0) {
+      defaultPresetId = Array.from(this.expandedPresetIds)[0];
+    } else if (this.presets.length > 0) {
+      defaultPresetId = this.presets[0].id;
+    }
+
+    const todayStr = this.formatDateToLocalYYYYMMDD(new Date());
+
+    this.activePresetIdForPeriod = defaultPresetId;
+    this.editingPeriodId = null;
+    this.periodFormModel = {
+      name: '',
+      startDate: todayStr,
+      endDate: todayStr,
+      color: '#3b82f6',
+      noteType: 'Period',
+      noteContent: '',
+      hashtags: []
+    };
+    this.newHashtagText = '';
+    this.showPeriodForm = true;
+  }
+
   openAddPeriod(presetId: string) {
     this.activePresetIdForPeriod = presetId;
     this.editingPeriodId = null;
@@ -215,7 +249,7 @@ export class DashboardComponent implements OnInit {
       startDate: model.startDate,
       endDate: model.endDate,
       color: model.color,
-      presetId: this.activePresetIdForPeriod,
+      presetId: this.activePresetIdForPeriod || null,
       noteType: model.noteType || null,
       noteContent: model.noteContent || null,
       hashtags: model.hashtags || []
@@ -227,7 +261,7 @@ export class DashboardComponent implements OnInit {
           this.showPeriodForm = false;
           this.loadPresetsAndSelectAll();
         },
-        error: (err) => alert(err.error?.message || 'Failed to update event.')
+        error: (err) => alert(err.error?.message || 'Failed to update note.')
       });
     } else {
       this.periodsService.createPeriod(payload).subscribe({
@@ -235,18 +269,18 @@ export class DashboardComponent implements OnInit {
           this.showPeriodForm = false;
           this.loadPresetsAndSelectAll();
         },
-        error: (err) => alert(err.error?.message || 'Failed to create event.')
+        error: (err) => alert(err.error?.message || 'Failed to create note.')
       });
     }
   }
 
   deletePeriod(id: string) {
-    if (!confirm('Are you sure you want to delete this event?')) return;
+    if (!confirm('Are you sure you want to delete this note?')) return;
     this.periodsService.deletePeriod(id).subscribe({
       next: () => {
         this.loadPresetsAndSelectAll();
       },
-      error: (err) => console.error('Error deleting event:', err)
+      error: (err) => console.error('Error deleting note:', err)
     });
   }
 
@@ -255,10 +289,60 @@ export class DashboardComponent implements OnInit {
     for (const preset of this.presets) {
       const period = (preset.periods || []).find(p => p.id === periodId);
       if (period) {
+        this.selectedDate = new Date(period.startDate);
         this.openEditPeriod(period, preset.id);
         break;
       }
     }
+  }
+
+  onCalendarDateSelected(date: Date) {
+    this.selectedDate = date;
+  }
+
+  getSelectedDateLabel(): string {
+    const date = this.selectedDate || new Date();
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  clearSelectedDate() {
+    this.selectedDate = null;
+  }
+
+  getPresetNameForPeriod(period: Period): string {
+    const preset = this.presets.find(p => p.id === period.presetId);
+    return preset ? preset.name : 'Global';
+  }
+
+  getNoteTypeIcon(type?: string): string {
+    if (!type) return '📅';
+    switch (type.toLowerCase()) {
+      case 'period': return '📅';
+      case 'vibe': return '✨';
+      case 'impression': return '💭';
+      case 'event': return '🎈';
+      default: return '📝';
+    }
+  }
+
+  openEditPeriodForFeed(period: Period) {
+    const presetId = period.presetId || '';
+    this.openEditPeriod(period, presetId);
+  }
+
+  get activePeriodsForSelectedDate(): Period[] {
+    const targetDate = this.selectedDate || new Date();
+    const target = new Date(targetDate);
+    target.setHours(0, 0, 0, 0);
+
+    return this.displayedPeriods.filter(p => {
+      const start = new Date(p.startDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(p.endDate);
+      end.setHours(23, 59, 59, 999);
+      
+      return target >= start && target <= end;
+    });
   }
 
   onCalendarDateRangeSelected(range: {start: Date, end: Date}) {
@@ -351,6 +435,13 @@ export class DashboardComponent implements OnInit {
     const target = event.target as HTMLElement;
     if (!target.closest('.multiselect-container')) {
       this.dropdownOpen = false;
+    }
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  handleEscapeKey(event: KeyboardEvent) {
+    if (this.showPeriodForm) {
+      this.showPeriodForm = false;
     }
   }
 }

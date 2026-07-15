@@ -11,7 +11,8 @@
     "WELCOME_BACK": "Welcome back"
   },
   "BOARD": {
-    "YEAR_AT_A_GLANCE": "Live Categories and Calendar"
+    "YEAR_AT_A_GLANCE": "Live Categories and Calendar",
+    "ADD_NOTE": "➕ Add Note"
   },
   "ADMIN": {
     "OVERVIEW_SELECTED_PERIODS": "Here's an overview of your selected periods",
@@ -26,5 +27,34 @@
   },
   "CALENDAR": {
     "TODAY": "Today"
+  },
+  "EVENT_MODAL": {
+    "EDIT_TITLE": "✏️ Edit Note",
+    "ADD_TITLE": "📅 Add Note to Preset",
+    "EVENT_NAME": "Note Name",
+    "NAME_PLACEHOLDER": "e.g. Summer Festival",
+    "ASSIGN_FOLDER": "Assign to Folder",
+    "NONE_GLOBAL": "-- None (Global Period) --",
+    "START_DATE": "Start Date",
+    "END_DATE": "End Date",
+    "COLOR_TAG": "Color Tag",
+    "NOTE_TYPE": "Note Type",
+    "TYPE_PERIOD": "Period",
+    "TYPE_VIBE": "Vibe",
+    "TYPE_IMPRESSION": "Impression",
+    "TYPE_EVENT": "Event (it happens in the world)",
+    "HASHTAGS": "Hashtags",
+    "HASHTAG_PLACEHOLDER": "Type a tag (e.g. happy) and press Enter",
+    "NOTE_CONTENT": "Note Content / Details",
+    "NOTE_PLACEHOLDER": "Enter note details here...",
+    "CANCEL": "Cancel",
+    "SAVE": "Save Note",
+    "SELECT_START_DATE": "Select Start Date",
+    "SELECT_END_DATE": "Select End Date"
+  },
+  "CALENDAR_POPUP": {
+    "TITLE": "Notes Active on",
+    "NO_NOTES": "No active notes found for this date.",
+    "EDIT": "✏️ Edit"
   }
 }

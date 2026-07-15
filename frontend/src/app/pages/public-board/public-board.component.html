@@ -156,8 +156,67 @@
           <app-timeline-bar *ngIf="viewMode === 'timeline'" [periods]="displayedPeriods" [year]="currentYear" style="width: 100%;" />
 
           <!-- Calendar View -->
-          <app-calendar-view *ngIf="viewMode === 'calendar'" [periods]="displayedPeriods" [year]="currentYear" style="width: 100%;" />
+          <app-calendar-view *ngIf="viewMode === 'calendar'" [periods]="displayedPeriods" [presets]="presets" [isEditable]="false" [year]="currentYear" (dateSelected)="onCalendarDateSelected($event)" (eventClicked)="onCalendarEventClicked($event)" style="width: 100%;" />
         }
+      </div>
+
+      <!-- Calendar Active Notes Feed (Public View) -->
+      <div *ngIf="!loading && viewMode === 'calendar'" class="card glass-panel feed-card" style="margin-top: 1.5rem; padding: 1.5rem; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
+          <h2 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--color-text); display: flex; align-items: center; gap: 0.5rem;">
+            📰 Notes Active on {{ getSelectedDateLabel() }}
+          </h2>
+          <button *ngIf="selectedDate" class="btn-outline" (click)="clearSelectedDate()" style="padding: 0.3rem 0.75rem; font-size: 0.8rem; border-radius: 6px;">
+            Reset to Today
+          </button>
+        </div>
+        
+        <div class="feed-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem;">
+          @for (period of activePeriodsForSelectedDate; track period.id) {
+            <div class="feed-card-item" [style.border-left-color]="period.color" 
+                 style="border-left: 4px solid; padding: 1.25rem; background: rgba(255, 255, 255, 0.02); border-radius: 12px; transition: all 0.25s ease; border: 1px solid rgba(255,255,255,0.05); border-left-width: 4px;">
+              
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; gap: 0.5rem;">
+                <span class="note-type-badge-custom" 
+                      [ngClass]="{
+                        'badge-period': (period.noteType || '').toLowerCase() === 'period',
+                        'badge-vibe': (period.noteType || '').toLowerCase() === 'vibe',
+                        'badge-impression': (period.noteType || '').toLowerCase() === 'impression',
+                        'badge-event': (period.noteType || '').toLowerCase() === 'event'
+                      }"
+                      style="font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem;">
+                  {{ getNoteTypeIcon(period.noteType) }} {{ period.noteType || 'Period' }}
+                </span>
+                
+                <span style="font-size: 0.7rem; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 0.25rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="getPresetNameForPeriod(period)">
+                  📁 {{ getPresetNameForPeriod(period) }}
+                </span>
+              </div>
+              
+              <h3 style="margin: 0.5rem 0 0.25rem; font-size: 1.05rem; font-weight: 600; color: var(--color-text);">
+                {{ period.name }}
+              </h3>
+              
+              <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">
+                📅 {{ period.startDate | date: 'MMM d, y' }} – {{ period.endDate | date: 'MMM d, y' }}
+              </div>
+              
+              <p *ngIf="period.noteContent" style="font-size: 0.85rem; line-height: 1.4; color: var(--color-text); opacity: 0.8; margin: 0 0 0.75rem;">
+                {{ period.noteContent }}
+              </p>
+              
+              <div *ngIf="period.hashtags?.length" style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                <span *ngFor="let tag of period.hashtags" class="tag-chip" style="font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.05); color: var(--color-primary);">
+                  #{{ tag }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+        
+        <div *ngIf="activePeriodsForSelectedDate.length === 0" class="empty-state-box" style="text-align: center; padding: 2.5rem; background: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.05); border-radius: 12px; opacity: 0.6;">
+          <p style="margin: 0; font-size: 0.95rem;">No active notes found for this date.</p>
+        </div>
       </div>
     </div>
   </div>

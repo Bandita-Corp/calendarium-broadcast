@@ -35,6 +35,7 @@ export class PublicBoardComponent implements OnInit {
   currentYear = new Date().getFullYear();
   viewMode: 'timeline' | 'calendar' = 'timeline';
   dropdownOpen = false;
+  selectedDate: Date | null = null;
 
   ngOnInit() {
     this.loadPresets();
@@ -164,6 +165,60 @@ export class PublicBoardComponent implements OnInit {
     if (!target.closest('.multiselect-container')) {
       this.dropdownOpen = false;
     }
+  }
+
+  onCalendarDateSelected(date: Date) {
+    this.selectedDate = date;
+  }
+
+  onCalendarEventClicked(periodId: string) {
+    for (const preset of this.presets) {
+      const period = (preset.periods || []).find(p => p.id === periodId);
+      if (period) {
+        this.selectedDate = new Date(period.startDate);
+        break;
+      }
+    }
+  }
+
+  getSelectedDateLabel(): string {
+    const date = this.selectedDate || new Date();
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  clearSelectedDate() {
+    this.selectedDate = null;
+  }
+
+  getPresetNameForPeriod(period: Period): string {
+    const preset = this.presets.find(p => p.id === period.presetId);
+    return preset ? preset.name : 'Global';
+  }
+
+  getNoteTypeIcon(type?: string): string {
+    if (!type) return '📅';
+    switch (type.toLowerCase()) {
+      case 'period': return '📅';
+      case 'vibe': return '✨';
+      case 'impression': return '💭';
+      case 'event': return '🎈';
+      default: return '📝';
+    }
+  }
+
+  get activePeriodsForSelectedDate(): Period[] {
+    const targetDate = this.selectedDate || new Date();
+    const target = new Date(targetDate);
+    target.setHours(0, 0, 0, 0);
+
+    return this.displayedPeriods.filter(p => {
+      const start = new Date(p.startDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(p.endDate);
+      end.setHours(23, 59, 59, 999);
+      
+      return target >= start && target <= end;
+    });
   }
 }
 
