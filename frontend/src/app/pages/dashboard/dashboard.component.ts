@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '@/services/auth.service';
@@ -11,7 +11,8 @@ import { DatePickerComponent } from '@/components/date-picker/date-picker.compon
 import { NoteViewModalComponent } from '@/components/note-view-modal/note-view-modal.component';
 import { Preset, Period } from '@/models';
 import { Router, NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs';
+import { filter, Subscription } from 'rxjs';
+import { MacroService } from '@/services/macro.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -28,17 +29,19 @@ import { filter } from 'rxjs';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   authService = inject(AuthService);
   presetsService = inject(PresetsService);
   periodsService = inject(PeriodsService);
   translate = inject(TranslateService);
   private router = inject(Router);
+  private macroService = inject(MacroService);
 
   presets: Preset[] = [];
   selectedPresetIds = new Set<string>();
   expandedPresetIds = new Set<string>();
   newPresetName = '';
+  private macroSub?: Subscription;
   currentMode: 'live' | 'edit' = 'live';
   currentYear = new Date().getFullYear();
   viewSubMode: 'timeline' | 'calendar' = 'timeline';
@@ -77,6 +80,60 @@ export class DashboardComponent implements OnInit {
       this.updateModeFromUrl();
     });
     this.updateModeFromUrl();
+
+    this.macroSub = this.macroService.macroTriggerAction$.subscribe((trigger) => {
+      this.applyMacro(trigger);
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.macroSub) {
+      this.macroSub.unsubscribe();
+    }
+  }
+
+  private applyMacro(trigger: any) {
+    let defaultPresetId = '';
+    if (this.expandedPresetIds.size > 0) {
+      defaultPresetId = Array.from(this.expandedPresetIds)[0];
+    } else if (this.presets.length > 0) {
+      defaultPresetId = this.presets[0].id;
+    }
+
+    const today = new Date();
+    const startDateStr = this.formatDateToLocalYYYYMMDD(today);
+    
+    let endDateStr = startDateStr;
+    if (!trigger.isSingleNote) {
+      const durationDays = trigger.durationDays || 1;
+      const endDate = new Date();
+      endDate.setDate(today.getDate() + durationDays);
+      endDateStr = this.formatDateToLocalYYYYMMDD(endDate);
+    }
+
+    this.activePresetIdForPeriod = defaultPresetId;
+    this.editingPeriodId = null;
+    this.periodFormModel = {
+      name: '',
+      startDate: startDateStr,
+      endDate: trigger.isSingleNote ? '' : endDateStr,
+      color: trigger.color,
+      noteType: trigger.noteType,
+      noteContent: '',
+      hashtags: [],
+      hasTime: false,
+      startTime: '09:00',
+      endTime: '10:00',
+      isSingleNote: trigger.isSingleNote
+    };
+    this.newHashtagText = '';
+    
+    // Switch to edit mode automatically to allow saving if not already in edit mode
+    if (this.currentMode !== 'edit') {
+      this.setMode('edit');
+    }
+    
+    this.showPeriodForm = true;
   }
 
   updateModeFromUrl() {

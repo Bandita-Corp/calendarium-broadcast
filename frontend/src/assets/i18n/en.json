@@ -92,5 +92,13 @@
     "TIMELINE": "Impact Timeline",
     "NO_CONTENT": "No description details provided for this note.",
     "DURATION_DAYS": "days"
+  },
+  "MACROS": {
+    "QUICK_ADD": "⚡ Quick Add",
+    "ADD_PERIOD": "+ Period",
+    "ADD_VIBE": "+ Vibe",
+    "ADD_EVENT": "+ Event",
+    "DAY_RESUME": "+ Resume",
+    "SPECIFY_TRENDS": "+ Trend"
   }
 }

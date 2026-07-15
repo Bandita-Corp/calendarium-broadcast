@@ -92,5 +92,13 @@
     "TIMELINE": "Шкала влияния",
     "NO_CONTENT": "Нет описания для этой заметки.",
     "DURATION_DAYS": "дн."
+  },
+  "MACROS": {
+    "QUICK_ADD": "⚡ Быстрый ввод",
+    "ADD_PERIOD": "+ Период",
+    "ADD_VIBE": "+ Вайб",
+    "ADD_EVENT": "+ Событие",
+    "DAY_RESUME": "+ Итог",
+    "SPECIFY_TRENDS": "+ Тренд"
   }
 }

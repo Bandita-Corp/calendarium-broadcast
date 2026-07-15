@@ -1,10 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '@/services/auth.service';
 import { User } from '@/models';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LangSwitcherComponent } from '@/components/lang-switcher/lang-switcher.component';
+import { MacroService } from '@/services/macro.service';
 
 @Component({
   selector: 'app-root',
@@ -33,6 +34,30 @@ import { LangSwitcherComponent } from '@/components/lang-switcher/lang-switcher.
             <a routerLink="/dashboard/live/timeline" routerLinkActive="active" class="nav-link">
               {{ 'NAV.TIMELINE' | translate }}
             </a>
+
+            <!-- Quick Add Macros Buttons -->
+            <div class="macros-navbar-group">
+              <button class="macro-nav-btn btn-period" (click)="selectMacro('Period', '#ff9f43', false, 7)" title="{{ 'MACROS.ADD_PERIOD' | translate }}">
+                <span class="macro-icon">📅</span>
+                <span class="macro-label">{{ 'MACROS.ADD_PERIOD' | translate }}</span>
+              </button>
+              <button class="macro-nav-btn btn-vibe" (click)="selectMacro('Vibe', '#5f27cd', true)" title="{{ 'MACROS.ADD_VIBE' | translate }}">
+                <span class="macro-icon">✨</span>
+                <span class="macro-label">{{ 'MACROS.ADD_VIBE' | translate }}</span>
+              </button>
+              <button class="macro-nav-btn btn-event" (click)="selectMacro('Event', '#ee5253', false, 1)" title="{{ 'MACROS.ADD_EVENT' | translate }}">
+                <span class="macro-icon">🎈</span>
+                <span class="macro-label">{{ 'MACROS.ADD_EVENT' | translate }}</span>
+              </button>
+              <button class="macro-nav-btn btn-done" (click)="selectMacro('Done', '#1dd1a1', true)" title="{{ 'MACROS.DAY_RESUME' | translate }}">
+                <span class="macro-icon">✅</span>
+                <span class="macro-label">{{ 'MACROS.DAY_RESUME' | translate }}</span>
+              </button>
+              <button class="macro-nav-btn btn-trend" (click)="selectMacro('Trend', '#54a0ff', false, 1)" title="{{ 'MACROS.SPECIFY_TRENDS' | translate }}">
+                <span class="macro-icon">📈</span>
+                <span class="macro-label">{{ 'MACROS.SPECIFY_TRENDS' | translate }}</span>
+              </button>
+            </div>
           }
         </div>
 
@@ -83,6 +108,7 @@ import { LangSwitcherComponent } from '@/components/lang-switcher/lang-switcher.
 export class AppComponent implements OnInit {
   private authService = inject(AuthService);
   private translate = inject(TranslateService);
+  private macroService = inject(MacroService);
 
   currentUser: User | null = null;
   isAdmin = false;
@@ -107,5 +133,14 @@ export class AppComponent implements OnInit {
 
   logout() {
     this.authService.logout().subscribe();
+  }
+
+  selectMacro(noteType: string, color: string, isSingleNote: boolean, durationDays?: number) {
+    this.macroService.triggerMacro({
+      noteType,
+      color,
+      isSingleNote,
+      durationDays
+    });
   }
 }
