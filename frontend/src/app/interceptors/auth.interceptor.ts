@@ -1,28 +1,64 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, throwError, switchMap } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { catchError, throwError, switchMap, BehaviorSubject, filter, take } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '@/services/auth.service';
 
+let isRefreshing = false;
+const refreshSubject = new BehaviorSubject<boolean | null>(null);
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const http = inject(HttpClient);
   const router = inject(Router);
   const authService = inject(AuthService);
 
-  // Simple interceptor, assumes credentials (cookies) are sent automatically
-  // For dealing with 401s, we might need to refresh token or redirect
   const cloned = req.clone({
     withCredentials: true
   });
 
   return next(cloned).pipe(
     catchError((error) => {
-      if (error.status === 401 && !req.url.includes('/auth/login') && !req.url.includes('/auth/refresh')) {
-        // Handle 401 Unauthorized here by redirecting or attempting refresh
-        // For simplicity, we just trigger logout
-        router.navigate(['/login']);
+      if (error instanceof HttpErrorResponse && error.status === 401) {
+        // If the error occurred on login or refresh, do not try to refresh
+        if (req.url.includes('/auth/login') || req.url.includes('/auth/refresh')) {
+          if (req.url.includes('/auth/refresh')) {
+            authService.clearSession();
+          }
+          return throwError(() => error);
+        }
+
+        if (!isRefreshing) {
+          isRefreshing = true;
+          refreshSubject.next(null);
+
+          return authService.refreshTokens().pipe(
+            switchMap(() => {
+              isRefreshing = false;
+              refreshSubject.next(true);
+              return next(cloned);
+            }),
+            catchError((refreshError) => {
+              isRefreshing = false;
+              refreshSubject.next(false);
+              authService.clearSession();
+              return throwError(() => refreshError);
+            })
+          );
+        } else {
+          // If already refreshing, wait for the status to change
+          return refreshSubject.pipe(
+            filter((result) => result !== null),
+            take(1),
+            switchMap((success) => {
+              if (success) {
+                return next(cloned);
+              } else {
+                return throwError(() => error);
+              }
+            })
+          );
+        }
       }
+
       return throwError(() => error);
     })
   );
