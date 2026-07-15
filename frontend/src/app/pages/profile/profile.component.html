@@ -1,0 +1,174 @@
+<div class="page profile-page">
+  <div class="profile-header card glass-panel">
+    @if (currentUser) {
+      <div class="profile-user-info">
+        <div class="profile-avatar">
+          {{ getInitial(currentUser) }}
+        </div>
+        <div class="profile-meta">
+          <h1 class="profile-name">{{ currentUser.name || currentUser.email }}</h1>
+          <p class="profile-email">{{ currentUser.email }}</p>
+          <span class="role-badge" [class.admin-badge]="currentUser.role === 'ADMIN'">
+            {{ currentUser.role }}
+          </span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="tabs-container">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'profile'" 
+      (click)="setTab('profile')">
+      👤 {{ 'STATS.EDIT_PROFILE' | translate }}
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'stats'" 
+      (click)="setTab('stats')">
+      📊 {{ 'STATS.STATISTICS' | translate }}
+    </button>
+  </div>
+
+  <div class="tab-content">
+    <!-- Profile Edit Form Tab -->
+    @if (activeTab === 'profile') {
+      <div class="card glass-panel form-card">
+        <h2 class="section-title">{{ 'STATS.EDIT_PROFILE' | translate }}</h2>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="profile-form">
+          @if (successMsg) {
+            <div class="alert alert-success">{{ successMsg }}</div>
+          }
+          @if (errorMsg) {
+            <div class="alert alert-error">{{ errorMsg }}</div>
+          }
+
+          <div class="form-group">
+            <label class="form-label">Name</label>
+            <input 
+              type="text" 
+              formControlName="name" 
+              class="form-input" 
+              placeholder="e.g. John Doe">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input 
+              type="email" 
+              formControlName="email" 
+              class="form-input" 
+              placeholder="e.g. john@example.com">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              New Password
+              <span class="optional">(leave blank to keep current)</span>
+            </label>
+            <input 
+              type="password" 
+              formControlName="password" 
+              class="form-input" 
+              placeholder="Minimum 8 characters">
+          </div>
+
+          <button 
+            type="submit" 
+            [disabled]="form.invalid || loading" 
+            class="btn-primary form-submit-btn">
+            {{ (loading ? 'Saving...' : 'Save Changes') }}
+          </button>
+        </form>
+      </div>
+    }
+
+    <!-- Statistics Tab -->
+    @if (activeTab === 'stats') {
+      <div class="stats-dashboard">
+        <!-- Stats Mini Grid -->
+        @if (stats) {
+          <div class="stats-grid">
+            <div class="card glass-panel stat-card">
+              <span class="stat-icon">📝</span>
+              <div class="stat-info">
+                <span class="stat-number">{{ stats.totalLogged }}</span>
+                <span class="stat-label">{{ 'STATS.TOTAL_LOGGED' | translate }}</span>
+              </div>
+            </div>
+
+            <div class="card glass-panel stat-card">
+              <span class="stat-icon">🔥</span>
+              <div class="stat-info">
+                <span class="stat-number">{{ stats.currentStreak }}</span>
+                <span class="stat-label">Current Streak</span>
+              </div>
+            </div>
+
+            <div class="card glass-panel stat-card">
+              <span class="stat-icon">🏆</span>
+              <div class="stat-info">
+                <span class="stat-number">{{ stats.maxStreak }}</span>
+                <span class="stat-label">{{ 'STATS.MAX_STREAK' | translate }}</span>
+              </div>
+            </div>
+
+            <div class="card glass-panel stat-card">
+              <span class="stat-icon">📁</span>
+              <div class="stat-info">
+                <span class="stat-number">{{ stats.totalPresets }}</span>
+                <span class="stat-label">{{ 'STATS.TOTAL_PRESETS' | translate }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Type Distribution & Tags Section -->
+          <div class="stats-details-row">
+            <div class="card glass-panel breakdown-card">
+              <h3 class="subsection-title">{{ 'STATS.CATEGORIES' | translate }}</h3>
+              <div class="distribution-list">
+                @for (item of getTypeDistributionArray(); track item.key) {
+                  <div class="distribution-item">
+                    <div class="item-meta">
+                      <span class="item-name">{{ item.key }}</span>
+                      <span class="item-count">{{ item.value }}</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                      <div 
+                        class="progress-bar-fill" 
+                        [class]="'fill-' + item.key.toLowerCase()"
+                        [style.width]="getBarWidth(item.value)">
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="card glass-panel tags-stats-card">
+              <h3 class="subsection-title">{{ 'STATS.POPULAR_TAGS' | translate }}</h3>
+              @if (stats.topTags && stats.topTags.length > 0) {
+                <div class="stats-tag-cloud">
+                  @for (tagItem of stats.topTags; track tagItem.tag) {
+                    <div class="stats-tag-badge">
+                      <span class="tag-hash">#</span>{{ tagItem.tag }}
+                      <span class="tag-badge-count">{{ tagItem.count }}</span>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="no-tags-msg">No tags logged yet. Add hashtags to your notes to track trends!</p>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="card glass-panel loading-stats-card">
+            <p>Loading statistics...</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

@@ -12,6 +12,9 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   currentUser$ = this.currentUserSubject.asObservable();
 
+  private statsSubject = new BehaviorSubject<any>(null);
+  stats$ = this.statsSubject.asObservable();
+
   get currentUser(): User | null {
     return this.currentUserSubject.value;
   }
@@ -48,6 +51,18 @@ export class AuthService {
   refreshTokens() {
     return this.http.post<{ accessToken: string; refreshToken: string }>('/api/auth/refresh', {}).pipe(
       // Keep credentials automatically sent via HttpOnly cookie
+    );
+  }
+
+  updateProfile(data: any) {
+    return this.http.patch<User>('/api/auth/profile', data).pipe(
+      tap(user => this.currentUserSubject.next(user))
+    );
+  }
+
+  fetchStats() {
+    return this.http.get<any>('/api/auth/stats').pipe(
+      tap(stats => this.statsSubject.next(stats))
     );
   }
 

@@ -4,7 +4,8 @@
     "DASHBOARD": "Dashboard",
     "ADMIN": "Admin",
     "CALENDAR": "Calendar",
-    "TIMELINE": "Timeline"
+    "TIMELINE": "Timeline",
+    "PROFILE": "Profile"
   },
   "AUTH": {
     "LOGIN": "Login",
@@ -100,5 +101,16 @@
     "ADD_EVENT": "+ Event",
     "DAY_RESUME": "+ Resume",
     "SPECIFY_TRENDS": "+ Trend"
+  },
+  "STATS": {
+    "TOTAL_LOGGED": "Logs",
+    "STREAK": "Streak",
+    "PROFILE": "Profile",
+    "EDIT_PROFILE": "Edit Profile",
+    "STATISTICS": "Statistics",
+    "TOTAL_PRESETS": "Presets",
+    "MAX_STREAK": "Max Streak",
+    "CATEGORIES": "Category Breakdown",
+    "POPULAR_TAGS": "Popular Hashtags"
   }
 }

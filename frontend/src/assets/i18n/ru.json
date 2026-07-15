@@ -4,7 +4,8 @@
     "DASHBOARD": "Дашборд",
     "ADMIN": "Админ",
     "CALENDAR": "Календарь",
-    "TIMELINE": "Таймлайн"
+    "TIMELINE": "Таймлайн",
+    "PROFILE": "Профиль"
   },
   "AUTH": {
     "LOGIN": "Войти",
@@ -100,5 +101,16 @@
     "ADD_EVENT": "+ Событие",
     "DAY_RESUME": "+ Итог",
     "SPECIFY_TRENDS": "+ Тренд"
+  },
+  "STATS": {
+    "TOTAL_LOGGED": "Записи",
+    "STREAK": "Серия",
+    "PROFILE": "Профиль",
+    "EDIT_PROFILE": "Редактировать профиль",
+    "STATISTICS": "Статистика",
+    "TOTAL_PRESETS": "Пресеты",
+    "MAX_STREAK": "Макс. серия",
+    "CATEGORIES": "Разбивка категорий",
+    "POPULAR_TAGS": "Популярные теги"
   }
 }

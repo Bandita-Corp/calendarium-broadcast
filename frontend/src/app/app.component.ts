@@ -78,6 +78,26 @@ import { MacroService } from '@/services/macro.service';
                   <span class="user-name">{{ currentUser.name || currentUser.email }}</span>
                   <span class="user-role" [class.admin-badge]="isAdmin">{{ currentUser.role }}</span>
                 </div>
+
+                @if (stats) {
+                  <div class="user-stats-mini">
+                    <div class="stat-item">
+                      <span class="stat-val">{{ stats.totalLogged }}</span>
+                      <span class="stat-lbl">{{ 'STATS.TOTAL_LOGGED' | translate }}</span>
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-val">{{ stats.currentStreak }}🔥</span>
+                      <span class="stat-lbl">{{ 'STATS.STREAK' | translate }}</span>
+                    </div>
+                  </div>
+                  <div class="dropdown-divider"></div>
+                }
+
+                <a routerLink="/profile" class="dropdown-link">
+                  👤 {{ 'STATS.PROFILE' | translate }}
+                </a>
+                <div class="dropdown-divider"></div>
+
                 <button class="logout-btn" (click)="logout()">{{ 'AUTH.SIGN_OUT' | translate }}</button>
               </div>
             </div>
@@ -113,6 +133,7 @@ export class AppComponent implements OnInit {
 
   currentUser: User | null = null;
   isAdmin = false;
+  stats: any = null;
   currentYear = new Date().getFullYear();
 
   constructor() {
@@ -124,6 +145,17 @@ export class AppComponent implements OnInit {
     this.authService.currentUser$.subscribe((user) => {
       this.currentUser = user;
       this.isAdmin = user?.role === 'ADMIN';
+      if (user) {
+        this.authService.fetchStats().subscribe({
+          error: (err) => console.error('Error fetching initial stats', err)
+        });
+      } else {
+        this.stats = null;
+      }
+    });
+
+    this.authService.stats$.subscribe((stats) => {
+      this.stats = stats;
     });
   }
 
