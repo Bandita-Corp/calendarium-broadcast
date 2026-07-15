@@ -1,13 +1,7 @@
 /* --- Custom Styling for angular-calendar Month View --- */
 
 .calendar-wrapper {
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 20px;
-  backdrop-filter: blur(12px);
-  box-shadow: var(--shadow-md);
-  margin-top: 1rem;
+  position: relative;
 }
 
 .calendar-controls {
@@ -58,6 +52,11 @@
   border: 1px solid var(--color-border) !important;
   border-radius: var(--radius-sm);
   overflow: hidden;
+}
+
+::ng-deep .cal-month-view .cal-cell {
+  min-width: 0 !important;
+  flex: 1 1 0% !important;
 }
 
 ::ng-deep .cal-month-view .cal-cell-row {
@@ -372,12 +371,14 @@
   width: 100%;
   gap: 6px;
   height: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* Collapsed state */
 ::ng-deep .cal-month-view .cal-event:not(.cal-event-expanded) {
-  height: 8px !important;
-  padding: 0 4px !important;
+  height: 12px !important;
+  padding: 0 6px !important;
 }
 
 /* Expanded state */
@@ -388,6 +389,7 @@
 
 ::ng-deep .cal-month-view .cal-event-title-text {
   flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -427,9 +429,9 @@
 
 /* Collapsed button size */
 ::ng-deep .cal-month-view .cal-event:not(.cal-event-expanded) .cal-event-eye-btn {
-  width: 8px;
-  height: 8px;
-  opacity: 0.4;
+  width: 10px;
+  height: 10px;
+  opacity: 0.5;
 }
 
 /* Expanded button size */

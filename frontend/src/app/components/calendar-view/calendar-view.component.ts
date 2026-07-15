@@ -42,7 +42,7 @@ export class CalendarViewComponent implements OnChanges {
   selectedDate: Date | null = null;
   showPopup = false;
   popupPosition = { top: 0, left: 0 };
-  allEventTitlesVisible: boolean = false;
+  allEventTitlesVisible: boolean = true;
 
   private elementRef = inject(ElementRef);
 

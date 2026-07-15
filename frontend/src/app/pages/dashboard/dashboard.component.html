@@ -562,12 +562,19 @@
       <div style="display: flex; gap: 1rem;">
         <div style="flex: 1;">
           <label class="form-label" style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; font-weight: 600; opacity: 0.9;">{{ 'EVENT_MODAL.START_DATE' | translate }}</label>
-          <app-date-picker [(value)]="periodFormModel.startDate" [placeholder]="'EVENT_MODAL.SELECT_START_DATE' | translate"></app-date-picker>
+          <app-date-picker [(value)]="periodFormModel.startDate" (valueChange)="onStartDateChange($event)" [placeholder]="'EVENT_MODAL.SELECT_START_DATE' | translate"></app-date-picker>
         </div>
         <div style="flex: 1;">
           <label class="form-label" style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; font-weight: 600; opacity: 0.9;">{{ 'EVENT_MODAL.END_DATE' | translate }}</label>
-          <app-date-picker [(value)]="periodFormModel.endDate" [align]="'right'" [placeholder]="'EVENT_MODAL.SELECT_END_DATE' | translate"></app-date-picker>
+          <app-date-picker [(value)]="periodFormModel.endDate" [disabled]="periodFormModel.isSingleNote" [align]="'right'" [placeholder]="'EVENT_MODAL.SELECT_END_DATE' | translate"></app-date-picker>
         </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: -0.25rem;">
+        <input type="checkbox" id="singleNoteCheckbox" [(ngModel)]="periodFormModel.isSingleNote" (change)="onSingleNoteChange()" style="width: 16px; height: 16px; accent-color: var(--color-primary); cursor: pointer;" />
+        <label for="singleNoteCheckbox" style="font-size: 0.85rem; font-weight: 600; cursor: pointer; user-select: none; opacity: 0.9;">
+          {{ 'EVENT_MODAL.SINGLE_NOTE' | translate }}
+        </label>
       </div>
       
       <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: -0.25rem;">
@@ -580,11 +587,11 @@
       <div *ngIf="periodFormModel.hasTime" style="display: flex; gap: 1rem; margin-top: -0.25rem;">
         <div style="flex: 1;">
           <label class="form-label" style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; font-weight: 600; opacity: 0.9;">{{ 'EVENT_MODAL.START_TIME' | translate }}</label>
-          <input type="time" [(ngModel)]="periodFormModel.startTime" class="form-input" style="width: 100%;" />
+          <input type="time" [(ngModel)]="periodFormModel.startTime" (ngModelChange)="onStartTimeChange($event)" class="form-input" style="width: 100%;" />
         </div>
         <div style="flex: 1;">
           <label class="form-label" style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; font-weight: 600; opacity: 0.9;">{{ 'EVENT_MODAL.END_TIME' | translate }}</label>
-          <input type="time" [(ngModel)]="periodFormModel.endTime" class="form-input" style="width: 100%;" />
+          <input type="time" [(ngModel)]="periodFormModel.endTime" [disabled]="periodFormModel.isSingleNote" class="form-input" style="width: 100%;" />
         </div>
       </div>
       

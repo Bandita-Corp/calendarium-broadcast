@@ -486,6 +486,12 @@ body {
       box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
     }
   }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: rgba(0, 0, 0, 0.25);
+  }
 }
 
 .color-input-wrap {

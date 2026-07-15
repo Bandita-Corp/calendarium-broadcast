@@ -31,6 +31,7 @@ export class DatePickerComponent implements OnChanges {
   @Output() valueChange = new EventEmitter<string>();
   @Input() placeholder: string = 'Select Date';
   @Input() align: 'left' | 'right' = 'left';
+  @Input() disabled: boolean = false;
 
   private elementRef = inject(ElementRef);
   private translate = inject(TranslateService);
@@ -88,6 +89,7 @@ export class DatePickerComponent implements OnChanges {
   }
 
   toggleOpen() {
+    if (this.disabled) return;
     this.isOpen = !this.isOpen;
     if (this.isOpen) {
       const parsed = this.parseDate(this.value);
@@ -122,6 +124,7 @@ export class DatePickerComponent implements OnChanges {
 
   clearValue(event: MouseEvent) {
     event.stopPropagation();
+    if (this.disabled) return;
     this.value = '';
     this.valueChange.emit('');
   }

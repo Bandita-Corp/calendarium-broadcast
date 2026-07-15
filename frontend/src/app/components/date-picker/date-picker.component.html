@@ -1,5 +1,5 @@
 <div class="datepicker-container" (click)="$event.stopPropagation()">
-  <div class="input-wrapper" (click)="toggleOpen()">
+  <div class="input-wrapper" [class.disabled]="disabled" (click)="toggleOpen()">
     <input
       type="text"
       [value]="getDisplayValue()"
@@ -8,7 +8,7 @@
       [placeholder]="placeholder"
       style="padding-right: 3.2rem;"
     />
-    <span *ngIf="value" class="clear-icon" (click)="clearValue($event)">✖</span>
+    <span *ngIf="value && !disabled" class="clear-icon" (click)="clearValue($event)">✖</span>
     <span class="calendar-icon" [style.right]="value ? '1.85rem' : '0.85rem'">📅</span>
   </div>
 

@@ -15,11 +15,28 @@ export class PeriodCardComponent {
   @Input() period!: Period;
   @Input() isActive = false;
 
-  getDuration(period: Period): number | string {
+  isSingleDate(period: Period): boolean {
+    if (!period.endDate) return false;
+    const start = new Date(period.startDate);
+    const end = new Date(period.endDate);
+    const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    return startDay.getTime() === endDay.getTime();
+  }
+
+  getDurationLabel(period: Period): string {
     if (!period.endDate) return '-';
     const start = new Date(period.startDate);
     const end = new Date(period.endDate);
-    return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    
+    const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    if (startDay.getTime() === endDay.getTime()) {
+      return '1 day';
+    }
+    
+    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    return `${days} days`;
   }
 
   hasTime(period: Period): boolean {

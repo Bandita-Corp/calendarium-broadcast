@@ -175,3 +175,13 @@
   transform: scale(1.1);
   color: var(--color-danger, #ef4444);
 }
+
+.input-wrapper.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.input-wrapper.disabled input {
+  cursor: not-allowed !important;
+}

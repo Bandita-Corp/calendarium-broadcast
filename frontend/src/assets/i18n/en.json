@@ -56,6 +56,7 @@
     "SAVE": "Save Note",
     "SELECT_START_DATE": "Select Start Date",
     "SELECT_END_DATE": "Select End Date",
+    "SINGLE_NOTE": "Single note (one date)",
     "ADD_TIME": "Specify exact times",
     "START_TIME": "Start Time",
     "END_TIME": "End Time"

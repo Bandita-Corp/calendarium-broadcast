@@ -60,7 +60,7 @@
         *ngFor="let event of day.events; trackBy: trackByEventId"
         [ngStyle]="{ backgroundColor: event.color?.primary }"
         [ngClass]="event?.cssClass"
-        [class.cal-event-expanded]="allEventTitlesVisible"
+        [class.cal-event-expanded]="isEventTitleVisible(event.id)"
         (mouseenter)="highlightDay.emit({ event: event })"
         (mouseleave)="unhighlightDay.emit({ event: event })"
         [mwlCalendarTooltip]="
@@ -88,10 +88,12 @@
           <button
             class="cal-event-eye-btn"
             (click)="toggleEventTitle(event.id, $event)"
-            [title]="allEventTitlesVisible ? 'Hide all titles' : 'Show all titles'"
+            (mousedown)="$event.stopPropagation()"
+            (mouseup)="$event.stopPropagation()"
+            [title]="isEventTitleVisible(event.id) ? 'Hide title' : 'Show title'"
           >
             <svg
-              *ngIf="allEventTitlesVisible"
+              *ngIf="isEventTitleVisible(event.id)"
               xmlns="http://www.w3.org/2000/svg"
               width="12"
               height="12"
@@ -106,7 +108,7 @@
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
             <svg
-              *ngIf="!allEventTitlesVisible"
+              *ngIf="!isEventTitleVisible(event.id)"
               xmlns="http://www.w3.org/2000/svg"
               width="12"
               height="12"

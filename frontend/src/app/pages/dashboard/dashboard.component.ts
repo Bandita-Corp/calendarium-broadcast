@@ -65,7 +65,8 @@ export class DashboardComponent implements OnInit {
     hashtags: [] as string[],
     hasTime: false,
     startTime: '09:00',
-    endTime: '10:00'
+    endTime: '10:00',
+    isSingleNote: false
   };
 
   ngOnInit() {
@@ -251,7 +252,8 @@ export class DashboardComponent implements OnInit {
       hashtags: [],
       hasTime: false,
       startTime: '09:00',
-      endTime: '10:00'
+      endTime: '10:00',
+      isSingleNote: false
     };
     this.newHashtagText = '';
     this.showPeriodForm = true;
@@ -270,7 +272,8 @@ export class DashboardComponent implements OnInit {
       hashtags: [],
       hasTime: false,
       startTime: '09:00',
-      endTime: '10:00'
+      endTime: '10:00',
+      isSingleNote: false
     };
     this.newHashtagText = '';
     this.showPeriodForm = true;
@@ -289,6 +292,14 @@ export class DashboardComponent implements OnInit {
     const startTimeStr = this.formatTime(start);
     const endTimeStr = end ? this.formatTime(end) : '10:00';
 
+    // Determine if it was saved as a single note (start date and end date are the same day)
+    let isSingleNote = false;
+    if (end) {
+      const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+      const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+      isSingleNote = (startDay.getTime() === endDay.getTime());
+    }
+
     this.periodFormModel = {
       name: period.name,
       startDate: this.formatDateToLocalYYYYMMDD(start),
@@ -299,7 +310,8 @@ export class DashboardComponent implements OnInit {
       hashtags: period.hashtags ? [...period.hashtags] : [],
       hasTime: hasTime,
       startTime: hasTime ? startTimeStr : '09:00',
-      endTime: hasTime ? endTimeStr : '10:00'
+      endTime: hasTime ? endTimeStr : '10:00',
+      isSingleNote: isSingleNote
     };
     this.newHashtagText = '';
     this.showPeriodForm = true;
@@ -308,6 +320,13 @@ export class DashboardComponent implements OnInit {
   savePeriod() {
     const model = this.periodFormModel;
     if (!model.name || !model.startDate) return;
+
+    if (model.isSingleNote) {
+      model.endDate = model.startDate;
+      if (model.hasTime) {
+        model.endTime = model.startTime;
+      }
+    }
 
     let startDateISO: string;
     let endDateISO: string | null = null;
@@ -475,6 +494,7 @@ export class DashboardComponent implements OnInit {
     const startStr = this.formatDateToLocalYYYYMMDD(range.start);
     const endStr = this.formatDateToLocalYYYYMMDD(range.end);
 
+    const isSingle = startStr === endStr;
     this.periodFormModel = {
       name: '',
       startDate: startStr,
@@ -485,7 +505,8 @@ export class DashboardComponent implements OnInit {
       hashtags: [],
       hasTime: false,
       startTime: '09:00',
-      endTime: '10:00'
+      endTime: '10:00',
+      isSingleNote: isSingle
     };
     this.newHashtagText = '';
     this.showPeriodForm = true;
@@ -508,6 +529,25 @@ export class DashboardComponent implements OnInit {
 
   selectNoteType(type: string) {
     this.periodFormModel.noteType = type;
+  }
+
+  onSingleNoteChange() {
+    if (this.periodFormModel.isSingleNote) {
+      this.periodFormModel.endDate = this.periodFormModel.startDate;
+      this.periodFormModel.endTime = this.periodFormModel.startTime;
+    }
+  }
+
+  onStartDateChange(newDate: string) {
+    if (this.periodFormModel.isSingleNote) {
+      this.periodFormModel.endDate = newDate;
+    }
+  }
+
+  onStartTimeChange(newTime: string) {
+    if (this.periodFormModel.isSingleNote) {
+      this.periodFormModel.endTime = newTime;
+    }
   }
 
   private formatDateToLocalYYYYMMDD(date: Date): string {

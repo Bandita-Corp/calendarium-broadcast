@@ -12,16 +12,26 @@
     </div>
     <div class="period-dates">
       <span class="date-range">
-        <ng-container *ngIf="hasTime(period)">
-          {{ period.startDate | date: 'MMM d, y, HH:mm' }} &rarr; {{ period.endDate | date: 'MMM d, y, HH:mm' }}
+        <ng-container *ngIf="isSingleDate(period)">
+          <ng-container *ngIf="hasTime(period)">
+            {{ period.startDate | date: 'MMM d, y, HH:mm' }}
+          </ng-container>
+          <ng-container *ngIf="!hasTime(period)">
+            {{ period.startDate | date: 'MMM d, y' }}
+          </ng-container>
         </ng-container>
-        <ng-container *ngIf="!hasTime(period)">
-          {{ period.startDate | date: 'MMM d, y' }} &rarr; {{ period.endDate ? (period.endDate | date: 'MMM d, y') : ('CALENDAR.ONGOING' | translate) }}
+        <ng-container *ngIf="!isSingleDate(period)">
+          <ng-container *ngIf="hasTime(period)">
+            {{ period.startDate | date: 'MMM d, y, HH:mm' }} &rarr; {{ period.endDate | date: 'MMM d, y, HH:mm' }}
+          </ng-container>
+          <ng-container *ngIf="!hasTime(period)">
+            {{ period.startDate | date: 'MMM d, y' }} &rarr; {{ period.endDate ? (period.endDate | date: 'MMM d, y') : ('CALENDAR.ONGOING' | translate) }}
+          </ng-container>
         </ng-container>
       </span>
     </div>
     <div class="period-duration">
-      {{ getDuration(period) }}{{ period.endDate ? ' days' : '' }}
+      {{ getDurationLabel(period) }}
     </div>
   </div>
 </div>
