@@ -34,7 +34,7 @@ model Period {
   id        String   @id @default(uuid())
   name      String
   startDate DateTime
-  endDate   DateTime
+  endDate   DateTime?
   color     String   @default("#FFD700")
   createdBy User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   userId    String?

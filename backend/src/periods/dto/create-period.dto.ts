@@ -15,8 +15,9 @@ export class CreatePeriodDto {
   @IsDateString()
   startDate: string;
 
+  @IsOptional()
   @IsDateString()
-  endDate: string;
+  endDate?: string;
 
   @IsOptional()
   @IsHexColor()

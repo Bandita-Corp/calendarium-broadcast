@@ -41,9 +41,9 @@ export class PeriodsService {
 
   async create(dto: CreatePeriodDto, userId: string) {
     const start = new Date(dto.startDate);
-    const end = new Date(dto.endDate);
+    const end = dto.endDate ? new Date(dto.endDate) : null;
 
-    if (start > end) {
+    if (end && start > end) {
       throw new BadRequestException('startDate must be before or equal to endDate');
     }
 
@@ -74,7 +74,9 @@ export class PeriodsService {
     if (dto.name) data.name = dto.name;
     if (dto.color) data.color = dto.color;
     if (dto.startDate) data.startDate = new Date(dto.startDate);
-    if (dto.endDate) data.endDate = new Date(dto.endDate);
+    if (dto.endDate !== undefined) {
+      data.endDate = dto.endDate ? new Date(dto.endDate) : null;
+    }
     if (dto.presetId !== undefined) {
       data.presetId = dto.presetId === '' ? null : dto.presetId;
     }
@@ -112,7 +114,10 @@ export class PeriodsService {
     return this.prisma.period.findMany({
       where: {
         startDate: { lte: now },
-        endDate: { gte: now },
+        OR: [
+          { endDate: null },
+          { endDate: { gte: now } },
+        ],
       },
       orderBy: { startDate: 'asc' },
     });
